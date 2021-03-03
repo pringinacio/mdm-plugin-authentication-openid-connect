@@ -15,7 +15,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins
+package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
 class UrlMappings {
 

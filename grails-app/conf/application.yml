@@ -18,7 +18,7 @@ maurodatamapper:
 grails:
     profile: rest-api-plugin
     codegen:
-        defaultPackage: uk.ac.ox.softeng.maurodatamapper.plugins.plugin_name
+        defaultPackage: uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
     gorm:
         reactor:
             # Whether to translate GORM events into Reactor events
@@ -152,11 +152,11 @@ environments:
             creation: 'CREATE SCHEMA IF NOT EXISTS CORE\;CREATE SCHEMA IF NOT EXISTS DATAMODEL\;CREATE SCHEMA IF NOT EXISTS TERMINOLOGY'
         dataSource:
     driverClassName: org.h2.Driver
-        dialect: org.hibernate.dialect.H2Dialect
+    dialect: org.hibernate.dialect.H2Dialect
     username: sa
     password: ''
-        dbCreate: create
-        url: 'jdbc:h2:mem:${database.name};LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL;INIT=${database.creation}'
+    dbCreate: create
+    url: 'jdbc:h2:mem:${database.name};LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL;INIT=${database.creation}'
     development:
         dataSource:
             driverClassName: org.postgresql.Driver
