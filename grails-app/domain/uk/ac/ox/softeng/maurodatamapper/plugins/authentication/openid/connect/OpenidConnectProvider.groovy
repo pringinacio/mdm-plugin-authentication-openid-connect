@@ -9,10 +9,8 @@ class OpenidConnectProvider {
     OpenidConnectProviderType providerType;
     Map parameters;
     String baseUrl;
-    String supplementalUrl;
+    String accessTokenUrl;
     String openidUrl;
-    String userIdentifierKey;
-    String userInformationUrl;
 
     static constraints = {
         label unique: true
