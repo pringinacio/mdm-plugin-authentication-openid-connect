@@ -17,9 +17,14 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
+import static uk.ac.ox.softeng.maurodatamapper.core.web.mapping.UrlMappingActions.DEFAULT_EXCLUDES
+
 class UrlMappings {
 
     static mappings = {
-        // provide plugin url mappings here
+        group '/api', {
+            'admin/openidConnectProviders'(resources: 'openidConnectProvider', excludes: DEFAULT_EXCLUDES)
+            'openidConnectProviders'(resources: 'folder', excludes: DEFAULT_EXCLUDES)
+        }
     }
 }
