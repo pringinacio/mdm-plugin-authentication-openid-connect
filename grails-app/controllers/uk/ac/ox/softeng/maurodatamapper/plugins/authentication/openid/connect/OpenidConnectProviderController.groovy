@@ -2,6 +2,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
 
 import org.springframework.beans.factory.annotation.Autowired
+import uk.ac.ox.softeng.maurodatamapper.core.container.Classifier
 import uk.ac.ox.softeng.maurodatamapper.core.controller.EditLoggingController
 import uk.ac.ox.softeng.maurodatamapper.security.SecurityPolicyManagerService
 
@@ -38,6 +39,7 @@ class OpenidConnectProviderController extends EditLoggingController<OpenidConnec
 
     @Override
     protected List<OpenidConnectProvider> listAllReadableResources(Map params) {
-        return openidConnectProviderService.list(params)
+        params.sort = params.sort ?: 'label'
+        openidConnectProviderService.list(currentUserSecurityPolicyManager, params)
     }
 }

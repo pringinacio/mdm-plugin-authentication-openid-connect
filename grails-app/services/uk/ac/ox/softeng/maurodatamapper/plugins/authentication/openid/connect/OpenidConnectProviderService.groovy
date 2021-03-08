@@ -17,4 +17,7 @@ class OpenidConnectProviderService {
         oauthProvider.delete(flush: true)
     }
 
+    OpenidConnectProvider findByOpenidConnectProviderType(OpenidConnectProviderType openidConnectProviderType){
+        OpenidConnectProvider.findByProviderType(openidConnectProviderType)
+    }
 }

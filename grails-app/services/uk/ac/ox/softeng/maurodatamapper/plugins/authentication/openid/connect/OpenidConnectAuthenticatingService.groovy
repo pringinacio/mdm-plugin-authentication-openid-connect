@@ -28,7 +28,7 @@ class OpenidConnectAuthenticatingService {
 
         OpenidConnectProvider openidConnectProviderProvider = openidConnectProviderService.get(Utils.toUuid(oauthProviderString))
 
-        if(!oauthProvider) {
+        if(!openidConnectProviderProvider) {
             log.warn('Attempt to authenticate using unknown OAUTH Provider')
             return null
         }

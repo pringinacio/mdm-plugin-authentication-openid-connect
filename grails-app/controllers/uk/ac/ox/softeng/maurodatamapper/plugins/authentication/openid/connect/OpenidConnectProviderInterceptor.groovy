@@ -1,5 +1,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
+import grails.web.servlet.mvc.GrailsParameterMap
 import uk.ac.ox.softeng.maurodatamapper.core.interceptor.SecurableResourceInterceptor
 import uk.ac.ox.softeng.maurodatamapper.security.SecurableResource
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
@@ -24,7 +25,7 @@ class OpenidConnectProviderInterceptor extends SecurableResourceInterceptor {
     }
 
     boolean before() {
-        securableResourceChecks()
-        checkActionAuthorisationOnSecuredResource(OpenidConnectProvider, getId(), true)
+        if (isIndex() && (params as GrailsParameterMap).boolean('openAccess')) return true
+        currentUserSecurityPolicyManager.isApplicationAdministrator() ?: forbiddenDueToNotApplicationAdministrator()
     }
 }
