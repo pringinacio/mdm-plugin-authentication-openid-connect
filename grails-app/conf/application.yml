@@ -15,6 +15,10 @@ maurodatamapper:
     authority:
         name: 'Mauro Data Mapper'
         url: http://localhost
+    openidConnect:
+        google:
+            clientid: "Clientid"
+            redirectUri: http://localhost:8080
 grails:
     profile: rest-api-plugin
     codegen:

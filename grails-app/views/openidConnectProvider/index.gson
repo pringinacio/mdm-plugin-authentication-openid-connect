@@ -1,0 +1,8 @@
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProvider
+
+model {
+    Iterable<OpenidConnectProvider> openidConnectProviderList
+}
+
+json tmpl.openidConnectProvider(openidConnectProviderList ?: [])
+

@@ -17,9 +17,37 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins
 
+import com.sun.media.sound.WaveExtensibleFileReader
+import grails.core.GrailsApplication
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.MessageSource
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProvider
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProviderType
+
+import static uk.ac.ox.softeng.maurodatamapper.util.GormUtils.checkAndSave
+
 class BootStrap {
 
+    @Autowired
+    MessageSource messageSource
+
     def init = {servletContext ->
+        GrailsApplication grailsApplication
+
+        OpenidConnectProvider.withNewTransaction {
+            if (OpenidConnectProvider.countByLabel('Development OpenidConnect Google') == 0) {
+                OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider('Development OpenidConnect Google', OpenidConnectProviderType.GOOGLE, "google.com", "o/oauth2/v2/auth", null,
+                [
+                        client_id: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.clientid'),
+                        response_type: 'code&',
+                        scope: 'openid email',
+                        redirect_uri: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.redirectUri'),
+                        state: "Some State",
+                        nonce: new UUID()
+                ])
+                checkAndSave(messageSource, openidConnectProvider)
+            }
+        }
     }
     def destroy = {
     }

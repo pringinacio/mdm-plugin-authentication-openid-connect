@@ -23,8 +23,8 @@ class UrlMappings {
 
     static mappings = {
         group '/api', {
-            'admin/openidConnectProviders'(resources: 'openidConnectProvider', excludes: DEFAULT_EXCLUDES)
-            'openidConnectProviders'(resources: 'folder', excludes: DEFAULT_EXCLUDES)
+            '/admin/openidConnectProviders'(resources: 'openidConnectProvider', excludes: DEFAULT_EXCLUDES)
+            '/openidConnectProviders'(resources: 'openidConnectProvider', excludes: DEFAULT_EXCLUDES)
         }
     }
 }

@@ -1,0 +1,15 @@
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProvider
+
+model{
+    OpenidConnectProvider openidConnectProvider
+}
+
+json{
+    id openidConnectProvider.id
+    label openidConnectProvider.label
+    baseUrl openidConnectProvider.baseUrl
+    accessTokenUrl openidConnectProvider.accessTokenUrl
+    parameters openidConnectProvider.parameters
+    openidConnectUrl openidConnectProvider.openidConnectUrl
+}
+
