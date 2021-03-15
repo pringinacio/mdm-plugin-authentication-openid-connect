@@ -30,7 +30,7 @@ class MdmPluginAuthenticationOpenidConnectSchemaMappingContext extends PluginSch
 
     @Override
     String getPluginName() {
-        'mdmPluginOpenidConnect'
+        'mdmPluginAuthenticationOpenidConnect'
     }
 
     @Override

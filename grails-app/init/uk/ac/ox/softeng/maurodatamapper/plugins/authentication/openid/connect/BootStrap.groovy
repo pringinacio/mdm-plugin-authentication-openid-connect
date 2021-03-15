@@ -17,6 +17,7 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
+import org.hibernate.id.GUIDGenerator
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProviderType
 
@@ -28,23 +29,30 @@ import static uk.ac.ox.softeng.maurodatamapper.util.GormUtils.checkAndSave
 
 class BootStrap {
 
+    GrailsApplication grailsApplication
+
     @Autowired
     MessageSource messageSource
 
     def init = {servletContext ->
-        GrailsApplication grailsApplication
+
 
         OpenidConnectProvider.withNewTransaction {
             if (OpenidConnectProvider.countByLabel('Development OpenidConnect Google') == 0) {
-                OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider('Development OpenidConnect Google', OpenidConnectProviderType.GOOGLE, "google.com", "o/oauth2/v2/auth",
-                [
-                        client_id: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.clientid'),
-                        response_type: 'code&',
-                        scope: 'openid email',
-                        redirect_uri: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.redirectUri'),
-                        state: "Some State",
-                        nonce: new UUID()
-                ])
+                OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
+                        'Development OpenidConnect Google',
+                        'mdm-dev',
+                        OpenidConnectProviderType.GOOGLE,
+                        "google.com",
+                        "o/oauth2/v2/auth",
+                        [
+                                client_id: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.clientid'),
+                                response_type: 'code&',
+                                scope: 'openid email',
+                                redirect_uri: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.redirectUri'),
+                                state: "Some State",
+                                nonce: UUID.randomUUID().toString()
+                        ])
                 checkAndSave(messageSource, openidConnectProvider)
             }
         }
