@@ -29,12 +29,12 @@ import groovy.util.logging.Slf4j
 class MdmPluginAuthenticationOpenidConnectSchemaMappingContext extends PluginSchemaHibernateMappingContext {
     @Override
     String getPluginName() {
-        'mdmPluginDatamodel'
+        'mdmPluginOpenidConnect'
     }
 
     @Override
     String getSchemaName() {
-        'datamodel'
+        'openidConnect'
     }
 }
 
