@@ -15,11 +15,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openidconnect
+package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.gorm.mapping.MdmPluginAuthenticationOpenidConnectSchemaMappingContext
 
 import grails.plugins.Plugin
-import uk.ac.ox.softeng.maurodatamapper.authentication.openid.connect.gorm.mapping.MdmPluginAuthenticationOpenidConnectSchemaMappingContext
 
 class MdmPluginAuthenticationOpenidConnectGrailsPlugin extends Plugin {
 

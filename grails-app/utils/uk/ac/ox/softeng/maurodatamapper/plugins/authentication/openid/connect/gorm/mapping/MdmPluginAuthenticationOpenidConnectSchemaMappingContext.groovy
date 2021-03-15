@@ -15,20 +15,27 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins
+package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.gorm.mapping
 
-import uk.ac.ox.softeng.maurodatamapper.util.Utils
+import uk.ac.ox.softeng.maurodatamapper.core.gorm.mapping.PluginSchemaHibernateMappingContext
 
-import grails.boot.GrailsApp
-import grails.boot.config.GrailsAutoConfiguration
-import grails.plugins.metadata.PluginSource
-import org.springframework.context.annotation.ComponentScan
+import groovy.util.logging.Slf4j
 
-@PluginSource
-@ComponentScan(basePackages = ['uk.ac.ox.softeng.maurodatamapper'])
-class Application extends GrailsAutoConfiguration {
-    static void main(String[] args) {
-        Utils.outputRuntimeArgs(Application)
-        GrailsApp.run(Application, args)
+/**
+ * Maps all domains in the mdm DataModel plugin into the core schema
+ * @since 01/11/2019
+ */
+@Slf4j
+class MdmPluginAuthenticationOpenidConnectSchemaMappingContext extends PluginSchemaHibernateMappingContext {
+
+    @Override
+    String getPluginName() {
+        'mdmPluginOpenidConnect'
+    }
+
+    @Override
+    String getSchemaName() {
+        'openidconnect'
     }
 }
+

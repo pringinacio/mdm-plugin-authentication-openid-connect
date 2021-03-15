@@ -15,14 +15,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins
+package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
-import com.sun.media.sound.WaveExtensibleFileReader
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProvider
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProviderType
+
 import grails.core.GrailsApplication
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProvider
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProviderType
 
 import static uk.ac.ox.softeng.maurodatamapper.util.GormUtils.checkAndSave
 
