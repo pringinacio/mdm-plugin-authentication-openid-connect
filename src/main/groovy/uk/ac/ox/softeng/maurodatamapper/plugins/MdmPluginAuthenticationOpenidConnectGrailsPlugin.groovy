@@ -19,6 +19,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openidconnect
 
 
 import grails.plugins.Plugin
+import uk.ac.ox.softeng.maurodatamapper.authentication.openid.connect.gorm.mapping.MdmPluginAuthenticationOpenidConnectSchemaMappingContext
 
 class MdmPluginAuthenticationOpenidConnectGrailsPlugin extends Plugin {
 
@@ -64,6 +65,7 @@ This plugin implements OpenID Connect integration for Keycloak, Google and Micro
 
     Closure doWithSpring() {
         {->
+            mdmPluginAuthenticationOpenidConnectSchemaMappingContext MdmPluginAuthenticationOpenidConnectSchemaMappingContext
         }
     }
 

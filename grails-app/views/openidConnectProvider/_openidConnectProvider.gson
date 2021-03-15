@@ -7,6 +7,7 @@ model{
 json{
     id openidConnectProvider.id
     label openidConnectProvider.label
+    openidConnectProviderType openidConnectProvider.openidConnectProviderType
     baseUrl openidConnectProvider.baseUrl
     accessTokenUrl openidConnectProvider.accessTokenUrl
     parameters openidConnectProvider.parameters

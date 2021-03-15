@@ -8,22 +8,21 @@ class OpenidConnectProvider implements CreatorAware {
 
     UUID id
     String label
-    OpenidConnectProviderType providerType
+    OpenidConnectProviderType openidConnectProviderType
     Map parameters
     String baseUrl
     String accessTokenUrl
-    String openidConnectUrl
 
     static constraints = {
         label unique: true
     }
 
-    OpenidConnectProvider(String label, OpenidConnectProviderType providerType, String url, String accessTokenUrl, String openidConnectUrl, Map parameters){
-        this.providerType = providerType
+    OpenidConnectProvider(String label, OpenidConnectProviderType openidConnectProviderType, String url, String accessTokenUrl, Map parameters){
+        this.label = label
+        this.openidConnectProviderType = openidConnectProviderType
         this.baseUrl = url
         this.parameters = parameters
         this.accessTokenUrl = accessTokenUrl
-        this.openidConnectUrl = openidConnectUrl
     }
 
     @Override

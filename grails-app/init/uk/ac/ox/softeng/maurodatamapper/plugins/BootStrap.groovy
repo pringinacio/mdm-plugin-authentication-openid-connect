@@ -36,7 +36,7 @@ class BootStrap {
 
         OpenidConnectProvider.withNewTransaction {
             if (OpenidConnectProvider.countByLabel('Development OpenidConnect Google') == 0) {
-                OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider('Development OpenidConnect Google', OpenidConnectProviderType.GOOGLE, "google.com", "o/oauth2/v2/auth", null,
+                OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider('Development OpenidConnect Google', OpenidConnectProviderType.GOOGLE, "google.com", "o/oauth2/v2/auth",
                 [
                         client_id: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.clientid'),
                         response_type: 'code&',
