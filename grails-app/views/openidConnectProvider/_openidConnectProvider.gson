@@ -10,7 +10,6 @@ json{
     openidConnectProviderType openidConnectProvider.openidConnectProviderType
     baseUrl openidConnectProvider.baseUrl
     accessTokenUrl openidConnectProvider.accessTokenUrl
-    parameters openidConnectProvider.parameters
-    openidConnectUrl openidConnectProvider.openidConnectUrl
+    parameters openidConnectProvider.getParameters()
 }
 

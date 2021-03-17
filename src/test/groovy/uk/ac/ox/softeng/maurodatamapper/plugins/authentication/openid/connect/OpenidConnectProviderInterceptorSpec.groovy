@@ -1,22 +1,20 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
+
+import grails.testing.services.ServiceUnitTest
 import grails.testing.web.interceptor.InterceptorUnitTest
-import spock.lang.Specification
+import groovy.util.logging.Slf4j
+import uk.ac.ox.softeng.maurodatamapper.core.container.ClassifierInterceptor
+import uk.ac.ox.softeng.maurodatamapper.test.unit.BaseUnitSpec
+import uk.ac.ox.softeng.maurodatamapper.test.unit.interceptor.ResourceInterceptorUnitSpec
 
-class OpenidConnectProviderInterceptorSpec extends Specification implements InterceptorUnitTest<OpenidConnectProviderInterceptor> {
 
-    def setup() {
-    }
+@Slf4j
+class OpenidConnectProviderInterceptorSpec extends ResourceInterceptorUnitSpec implements InterceptorUnitTest<ClassifierInterceptor> {
 
-    def cleanup() {
 
-    }
-
-    void "Test oauthProvider interceptor matching"() {
-        when:"A request matches the interceptor"
-        withRequest(controller:"oauthProvider")
-
-        then:"The interceptor does match"
-        interceptor.doesMatch()
+    @Override
+    String getControllerName() {
+        return null
     }
 }

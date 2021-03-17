@@ -33,6 +33,7 @@ class OpenidConnectProvider implements CreatorAware {
         this.openidConnectProviderType = openidConnectProviderType
         this.baseUrl = url
         this.parameters = parameters
+        this.parametersJson = ''
         this.accessTokenUrl = accessTokenUrl
     }
 
@@ -42,11 +43,12 @@ class OpenidConnectProvider implements CreatorAware {
     }
 
     def beforeInsert(){
-        parametersJson = new JsonBuilder(parameters).toString()
+        this.parametersJson = new JsonBuilder(this.parameters).toString()
     }
 
-    def onLoad(){
-        parameters = new JsonSlurper().parseText(parametersJson) as Map
+    Map getParameters(){
+        if (!parameters && parametersJson) parameters = new JsonSlurper().parseText(this.parametersJson) as Map
+        parameters
     }
 
 }

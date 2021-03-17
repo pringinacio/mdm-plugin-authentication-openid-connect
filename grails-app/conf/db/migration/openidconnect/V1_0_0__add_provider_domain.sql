@@ -9,6 +9,7 @@ create table openidconnect.openid_connect_provider (
     base_url varchar(255) not null,
     access_token_url varchar(255) not null,
     created_by varchar(255) not null,
+    parameters_json text not null,
     openid_connect_provider_type varchar(255) not null,
     label varchar(255) not null,
     primary key (id));

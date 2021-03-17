@@ -14,8 +14,6 @@ class OpenidConnectProviderController extends EditLoggingController<OpenidConnec
 
     OpenidConnectProviderService openidConnectProviderService
 
-    def index() { }
-
     OpenidConnectProviderController(){
         super(OpenidConnectProvider)
     }
@@ -40,6 +38,6 @@ class OpenidConnectProviderController extends EditLoggingController<OpenidConnec
     @Override
     protected List<OpenidConnectProvider> listAllReadableResources(Map params) {
         params.sort = params.sort ?: 'label'
-        openidConnectProviderService.list(currentUserSecurityPolicyManager, params)
+        openidConnectProviderService.list(params)
     }
 }

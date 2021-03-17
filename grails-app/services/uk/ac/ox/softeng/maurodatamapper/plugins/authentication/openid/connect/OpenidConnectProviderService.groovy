@@ -9,15 +9,23 @@ class OpenidConnectProviderService {
         OpenidConnectProvider.get(id)
     }
 
+    int count(){
+        OpenidConnectProvider.count()
+    }
+
     List<OpenidConnectProvider> list(Map pagination){
         pagination ? OpenidConnectProvider.list(pagination) : OpenidConnectProvider.list()
     }
 
-    void delete(OpenidConnectProvider oauthProvider){
-        oauthProvider.delete(flush: true)
+    void save(OpenidConnectProvider openidConnectProvider){
+        openidConnectProvider.save(failOnError: true, validate: false)
+    }
+
+    void delete(OpenidConnectProvider openidConnectProvider){
+        openidConnectProvider.delete(flush: true)
     }
 
     OpenidConnectProvider findByOpenidConnectProviderType(OpenidConnectProviderType openidConnectProviderType){
-        OpenidConnectProvider.findByProviderType(openidConnectProviderType)
+        OpenidConnectProvider.findByOpenidConnectProviderType(openidConnectProviderType)
     }
 }
