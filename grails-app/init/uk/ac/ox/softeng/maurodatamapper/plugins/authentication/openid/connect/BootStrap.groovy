@@ -36,12 +36,15 @@ class BootStrap {
 
     def init = {servletContext ->
 
-
+        Boolean googleEnabled = grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.enabled')
+        Boolean microsoftEnabled = grailsApplication.config.getProperty('maurodatamapper.openidConnect.microsoft.enabled')
+        Boolean keycloakEnabled = grailsApplication.config.getProperty('maurodatamapper.openidConnect.keycloak.enabled')
         OpenidConnectProvider.withNewTransaction {
-            if (OpenidConnectProvider.countByLabel('Development OpenidConnect Google') == 0) {
+
+            if (googleEnabled && OpenidConnectProvider.countByLabel('Development OpenidConnect Google') == 0) {
                 OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
                         'Development OpenidConnect Google',
-                        'mdm-dev',
+                        'mdmAdmin',
                         OpenidConnectProviderType.GOOGLE,
                         "google.com",
                         "o/oauth2/v2/auth",
@@ -50,9 +53,48 @@ class BootStrap {
                                 response_type: 'code&',
                                 scope: 'openid email',
                                 redirect_uri: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.redirectUri'),
-                                state: "Some State",
-                                nonce: UUID.randomUUID().toString()
+
+                        ],
+                        "https://oauth2.googleapis.com/token",
+                        [
+                                cliend_id: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.clientid'),
+                                client_secret: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.clientSecret'),
+                                redirect_uri: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.redirectUri'),
+                                grant_type: "authorization_code"
                         ])
+                checkAndSave(messageSource, openidConnectProvider)
+            }
+
+            if (microsoftEnabled && OpenidConnectProvider.countByLabel('Development OpenidConnect Microsoft') == 0) {
+                OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
+                        'Development OpenidConnect Microsoft',
+                        'mdmAdmin',
+                        OpenidConnectProviderType.MICROSOFT,
+                        "microsoft.com",
+                        "o/oauth2/v2/auth",
+                        [
+                                client_id: grailsApplication.config.getProperty('maurodatamapper.openidConnect.microsoft.clientid'),
+                                response_type: 'id_token',
+                                scope: 'openid',
+                                redirect_uri: grailsApplication.config.getProperty('maurodatamapper.openidConnect.microsoft.redirectUri')
+                        ])
+                checkAndSave(messageSource, openidConnectProvider)
+            }
+
+            if (keycloakEnabled && OpenidConnectProvider.countByLabel('Development OpenidConnect Keycloak') == 0) {
+                OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
+                        'Development OpenidConnect Keycloak',
+                        'mdmAdmin',
+                        OpenidConnectProviderType.KEYCLOAK,
+                        grailsApplication.config.getProperty('maurodatamapper.openidConnect.microsoft.baseUrl'),
+                        "realms/${grailsApplication.config.getProperty('maurodatamapper.openidConnect.microsoft.realm')}/protocol/openid-connect/auth",
+                        [
+                                client_id: grailsApplication.config.getProperty('maurodatamapper.openidConnect.microsoft.clientid'),
+                                response_type: 'id_token',
+                                scope: 'openid',
+                                redirect_uri: grailsApplication.config.getProperty('maurodatamapper.openidConnect.microsoft.redirectUri')
+                        ],
+                        )
                 checkAndSave(messageSource, openidConnectProvider)
             }
         }

@@ -12,29 +12,41 @@ class OpenidConnectProvider implements CreatorAware {
     String label
     String createdBy
     OpenidConnectProviderType openidConnectProviderType
-    Map parameters
-    String parametersJson
+
     String baseUrl
-    String accessTokenUrl
+    String authenticationRequestUrl
+    Map authenticationRequestParameters
+    String authenticationRequestParametersJson
+    String accessTokenRequestUrl
+    Map accessTokenRequestParameters
+    String accessTokenRequestParametersJson
 
     static constraints = {
         label unique: true
     }
 
     static mapping = {
-        parametersJson type: 'text'
+        accessTokenRequestParameters type: 'text'
+        authenticationRequestParameters type: 'text'
     }
 
     static transients = ['parameters']
 
-    OpenidConnectProvider(String label, String createdBy, OpenidConnectProviderType openidConnectProviderType, String url, String accessTokenUrl, Map parameters){
+    OpenidConnectProvider(String label, String createdBy, OpenidConnectProviderType openidConnectProviderType, String url,
+                          String authenticationRequestUrl, Map authenticationRequestParameters,
+                          String accessTokenRequestUrl, Map accessTokenRequestParameters){
         this.label = label
         this.createdBy = createdBy
         this.openidConnectProviderType = openidConnectProviderType
         this.baseUrl = url
-        this.parameters = parameters
-        this.parametersJson = ''
-        this.accessTokenUrl = accessTokenUrl
+        this.authenticationRequestUrl = authenticationRequestUrl
+        this.authenticationRequestParameters = authenticationRequestParameters
+        this.authenticationRequestParametersJson = ''
+        this.accessTokenRequestUrl = accessTokenRequestUrl
+        this.accessTokenRequestParameters = accessTokenRequestParameters
+        this.accessTokenRequestParametersJson = ''
+
+
     }
 
     @Override
@@ -43,12 +55,18 @@ class OpenidConnectProvider implements CreatorAware {
     }
 
     def beforeInsert(){
-        this.parametersJson = new JsonBuilder(this.parameters).toString()
+        this.authenticationRequestParametersJson = new JsonBuilder(this.authenticationRequestParameters).toString()
+        this.accessTokenRequestParametersJson = new JsonBuilder(this.accessTokenRequestParameters).toString()
     }
 
-    Map getParameters(){
-        if (!parameters && parametersJson) parameters = new JsonSlurper().parseText(this.parametersJson) as Map
-        parameters
+    Map getAccessTokenRequestParameters(){
+        if (!accessTokenRequestParameters && accessTokenRequestParametersJson) accessTokenRequestParameters = new JsonSlurper().parseText(accessTokenRequestParametersJson) as Map
+        accessTokenRequestParameters
+    }
+
+    Map getAuthenticationRequestParameters(){
+        if (!authenticationRequestParameters && authenticationRequestParametersJson) authenticationRequestParameters = new JsonSlurper().parseText(authenticationRequestParametersJson) as Map
+        authenticationRequestParameters
     }
 
 }
