@@ -1,25 +1,26 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
-import grails.gorm.transactions.Transactional
-import io.micronaut.http.HttpRequest
-import io.micronaut.http.HttpStatus
-import io.micronaut.http.MediaType
-import io.micronaut.http.client.exceptions.HttpClientResponseException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.session.SessionService
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUserService
+import uk.ac.ox.softeng.maurodatamapper.security.authentication.AuthenticationSchemeService
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
+import grails.gorm.transactions.Transactional
+import io.micronaut.http.HttpRequest
+import io.micronaut.http.HttpStatus
+import io.micronaut.http.MediaType
 import io.micronaut.http.client.HttpClient
+import io.micronaut.http.client.exceptions.HttpClientResponseException
 
-import javax.servlet.http.HttpSession
 import java.net.http.HttpResponse
+import javax.servlet.http.HttpSession
 
 @Transactional
-class OpenidConnectAuthenticatingService {
+class OpenidConnectAuthenticatingService implements AuthenticationSchemeService {
 
     OpenidConnectProviderService openidConnectProviderService
 
@@ -27,13 +28,33 @@ class OpenidConnectAuthenticatingService {
 
     SessionService sessionService
 
+
+    @Override
+    String getName() {
+        'openIdConnect'
+    }
+
+    @Override
+    String getDisplayName() {
+        'OpenId Connect Authentication Service'
+    }
+
+    @Override
+    int getOrder() {
+        0
+    }
+
     @Transactional
-    CatalogueUser authenticateAndObtainUserUsingOauthProvider(HttpSession session, String oauthProviderString, String accessCode){
+    CatalogueUser authenticateAndObtainUser(Map<String, Object> authenticationInformation) {
         log.info('Attempt to access system using OAUTH')
+
+        HttpSession session = authenticationInformation.session
+        String oauthProviderString = authenticationInformation.oauthProviderString
+        String accessCode = authenticationInformation.accessCode
 
         OpenidConnectProvider openidConnectProviderProvider = openidConnectProviderService.get(Utils.toUuid(oauthProviderString))
 
-        if(!openidConnectProviderProvider) {
+        if (!openidConnectProviderProvider) {
             log.warn('Attempt to authenticate using unknown OAUTH Provider')
             return null
         }
@@ -41,14 +62,17 @@ class OpenidConnectAuthenticatingService {
         CatalogueUser user = null
         HttpSession sessionInfo = sessionService.retrieveSession(session)
 
+        // TODO how does this change for each individual user...you're not using the session info??
+        // TODO there is a slightly neater way to do all this client stuff which i've learnt from the test frameworks and also the fhir plugin work
+        // but i'm not bothered about this at the moment, it'll just be something to look at after we get it all working
         try {
             HttpResponse response = HttpClient
                 .create(openidConnectProviderProvider.baseUrl.toURL())
                 .toBlocking()
                 .exchange(
-                        HttpRequest.POST(openidConnectProviderProvider.accessTokenRequestUrl, openidConnectProviderProvider.accessTokenRequestParameters)
-                            .contentType(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-                            .accept(MediaType.APPLICATION_JSON_TYPE)
+                    HttpRequest.POST(openidConnectProviderProvider.accessTokenRequestUrl, openidConnectProviderProvider.accessTokenRequestParameters)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
+                        .accept(MediaType.APPLICATION_JSON_TYPE)
                 )
 
             if (openidConnectProviderProvider.accessTokenRequestParameters["state"] != response.properties["state"]){
