@@ -26,6 +26,7 @@ maurodatamapper:
             clientid: microsoftClientId
             clientSecret: clientSecret
             redirectUri: http://localhost:8080
+            tenant: organizations
         keycloak:
             enabled: false
             baseUrl: https://jenkins.cs.ox.ac.uk/auth
