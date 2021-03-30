@@ -16,7 +16,7 @@ class OpenidConnectAuthenticatingServiceSpec extends BaseUnitSpec implements Ser
         mockDomains(OpenidConnectProvider)
 
         OpenidConnectProvider openidConnectProvider1 = new OpenidConnectProvider(
-                'Development OpenidConnect Keycloak',
+                'Test OpenidConnect Keycloak',
                 'mdmAdmin',
                 OpenidConnectProviderType.KEYCLOAK,
                 grailsApplication.config.getProperty('maurodatamapper.openidConnect.keycloak.baseUrl'),
@@ -42,27 +42,18 @@ class OpenidConnectAuthenticatingServiceSpec extends BaseUnitSpec implements Ser
         id = openidConnectProvider1.id
     }
 
-    void 'test authenticating with no authentication token'() {
+    void 'test authenticating user  with no authentication token'() {
         expect:
-        !service.authenticateAndObtainUser()
+        !service.authenticateAndObtainUser([session: currentSession, oauthProviderString: 'Test OpenidConnect Keycloak', accessCode: ''])
 
     }
 
-    void 'test second user authentication'() {
+    void 'test authenticating user with random authentication token'() {
         expect:
-        service.authenticateAndObtainUser(admin.emailAddress, "password")
-        !service.authenticateAndObtainUser(admin.emailAddress, "Password")
-        !service.authenticateAndObtainUser(admin.emailAddress, "password1234")
-        service.authenticateAndObtainUser(admin.emailAddress, "    password")
-        service.authenticateAndObtainUser(admin.emailAddress, "password     ")
-        !service.authenticateAndObtainUser(admin.emailAddress, "pass   word")
+        !service.authenticateAndObtainUser([session: currentSession, oauthProviderString: 'Test OpenidConnect Keycloak', accessCode: 'ThisIsARandomAccessCode-1234567890'])
     }
 
     def cleanup() {
     }
-
-    void "test something"() {
-        expect:"fix me"
-            true == false
-    }
+    
 }

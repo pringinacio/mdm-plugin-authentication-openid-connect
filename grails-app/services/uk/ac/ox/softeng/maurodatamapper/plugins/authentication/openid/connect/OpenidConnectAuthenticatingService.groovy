@@ -59,8 +59,7 @@ class OpenidConnectAuthenticatingService implements AuthenticationSchemeService 
             return null
         }
 
-        CatalogueUser user = null
-        HttpSession sessionInfo = sessionService.retrieveSession(session)
+        CatalogueUser user
 
         // TODO how does this change for each individual user...you're not using the session info??
         // TODO there is a slightly neater way to do all this client stuff which i've learnt from the test frameworks and also the fhir plugin work
