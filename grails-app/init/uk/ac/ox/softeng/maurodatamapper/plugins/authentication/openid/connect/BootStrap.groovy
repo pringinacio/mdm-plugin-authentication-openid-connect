@@ -95,7 +95,7 @@ class BootStrap {
                         'Development OpenidConnect Keycloak',
                         'mdmAdmin',
                         OpenidConnectProviderType.KEYCLOAK,
-                        grailsApplication.config.getProperty('maurodatamapper.openidConnect.keycloak.baseUrl')
+                        grailsApplication.config.getProperty('maurodatamapper.openidConnect.keycloak.baseUrl'),
                         "/realms/${grailsApplication.config.getProperty('maurodatamapper.openidConnect.keycloak.realm')}/protocol/openid-connect/auth",
                         [
                                 client_id: grailsApplication.config.getProperty('maurodatamapper.openidConnect.keycloak.clientid'),

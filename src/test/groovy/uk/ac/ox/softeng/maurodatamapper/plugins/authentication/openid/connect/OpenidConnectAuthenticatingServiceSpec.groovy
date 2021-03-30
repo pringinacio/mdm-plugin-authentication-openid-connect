@@ -16,23 +16,46 @@ class OpenidConnectAuthenticatingServiceSpec extends BaseUnitSpec implements Ser
         mockDomains(OpenidConnectProvider)
 
         OpenidConnectProvider openidConnectProvider1 = new OpenidConnectProvider(
-                'Development Test Provider 1',
-                'mdm-dev',
-                OpenidConnectProviderType.GOOGLE,
-                "google.com",
-                "o/oauth2/v2/auth",
+                'Development OpenidConnect Keycloak',
+                'mdmAdmin',
+                OpenidConnectProviderType.KEYCLOAK,
+                grailsApplication.config.getProperty('maurodatamapper.openidConnect.keycloak.baseUrl'),
+                "/realms/${grailsApplication.config.getProperty('maurodatamapper.openidConnect.keycloak.realm')}/protocol/openid-connect/auth",
                 [
-                        client_id: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.clientid'),
-                        response_type: 'code&',
+                        client_id: grailsApplication.config.getProperty('maurodatamapper.openidConnect.keycloak.clientid'),
+                        response_type: 'code',
                         scope: 'openid email',
-                        redirect_uri: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.redirectUri'),
-                        state: "Some State",
-                        nonce: UUID.randomUUID().toString()
-                ])
+                        redirect_uri: grailsApplication.config.getProperty('maurodatamapper.openidConnect.keycloak.redirectUri'),
+                ],
+                "/realms/${grailsApplication.config.getProperty('maurodatamapper.openidConnect.keycloak.realm')}/protocol/openid-connect/token",
+                [
+                        client_id: grailsApplication.config.getProperty('maurodatamapper.openidConnect.keycloak.clientid'),
+                        client_secret: grailsApplication.config.getProperty('maurodatamapper.openidConnect.keycloak.clientSecret'),
+                        grant_type: "authorization_code",
+                        redirect_uri: grailsApplication.config.getProperty('maurodatamapper.openidConnect.keycloak.redirectUri')
+
+                ]
+        )
 
         checkAndSave(openidConnectProvider1)
 
         id = openidConnectProvider1.id
+    }
+
+    void 'test authenticating with no authentication token'() {
+        expect:
+        !service.authenticateAndObtainUser()
+
+    }
+
+    void 'test second user authentication'() {
+        expect:
+        service.authenticateAndObtainUser(admin.emailAddress, "password")
+        !service.authenticateAndObtainUser(admin.emailAddress, "Password")
+        !service.authenticateAndObtainUser(admin.emailAddress, "password1234")
+        service.authenticateAndObtainUser(admin.emailAddress, "    password")
+        service.authenticateAndObtainUser(admin.emailAddress, "password     ")
+        !service.authenticateAndObtainUser(admin.emailAddress, "pass   word")
     }
 
     def cleanup() {
