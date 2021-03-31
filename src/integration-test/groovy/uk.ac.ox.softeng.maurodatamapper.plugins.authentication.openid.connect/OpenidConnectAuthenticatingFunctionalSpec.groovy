@@ -91,15 +91,6 @@ class OpenidConnectAuthenticatingFunctionalSpec extends BaseFunctionalSpec {
         verifyResponse(UNAUTHORIZED, response)
     }
 
-    void 'OCA04 : test logging in with no authentication code'() {
-
-        when: 'valid call made to login'
-        POST('login?scheme=integratedKeycloak', [])
-
-        then:
-        verifyResponse(UNAUTHORIZED, response)
-    }
-
     void 'OCA05 : GOOGLE - test logging in with empty authentication code'() {
         when: 'invalid call made to login'
         POST('login', [oauthproviderString: validGoogleProviderId, accessCode: ''])
@@ -127,7 +118,7 @@ class OpenidConnectAuthenticatingFunctionalSpec extends BaseFunctionalSpec {
 
     void 'OCA08 : GOOGLE - test logging in with valid authentication code'() {
         when: 'invalid call made to login'
-        POST('login', [oauthproviderString: validGoogleProviderId, accessCode: '4ya29.a0AfH6SMCKY24hQ2nEKi1epTqRSVRxbHKqcV8SQWqFTdKZDySeJl9Hl9k52qOCO5oU1WyxoyeoUbIHA-dMKxesTw1lWHP97iLwaa2fNDh31K6m_aD4n1Wr46gcxwKJqy55Nz-b-KeimZImI75w1Wlh-H-lI-CE'])
+        POST('login', [oauthProviderString: validGoogleProviderId, accessCode: 'ya29.a0AfH6SMCO31EOC1LlE2rnGsFQOkpJNSK95sp7KUb-LXAiqv16YG3Zm_gE7MKA3fZUko1lNpNUnpR8tFfGnvB8m9blDbz4fuvI6oD6LoN9zcuFlzDQtztdpQJmc9fZHnd0FdNlWl34ZizU-JrsT_XvDZTMlDeZ', session: activeSessions])
 
         then:
         verifyResponse(OK, response)

@@ -168,7 +168,7 @@ environments:
         spring.flyway.enabled: false
         database:
             name: 'mpp'
-            creation: 'CREATE SCHEMA IF NOT EXISTS CORE\;CREATE SCHEMA IF NOT EXISTS DATAMODEL\;CREATE SCHEMA IF NOT EXISTS TERMINOLOGY'
+            creation: 'CREATE SCHEMA IF NOT EXISTS CORE\;CREATE SCHEMA IF NOT EXISTS SECURITY\; CREATE SCHEMA IF NOT EXISTS OPENIDCONNECT'
         dataSource:
             driverClassName: org.h2.Driver
             dialect: org.hibernate.dialect.H2Dialect

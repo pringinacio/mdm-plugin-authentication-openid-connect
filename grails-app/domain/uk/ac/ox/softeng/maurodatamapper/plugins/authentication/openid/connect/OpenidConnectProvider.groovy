@@ -26,11 +26,15 @@ class OpenidConnectProvider implements CreatorAware {
     }
 
     static mapping = {
-        accessTokenRequestParameters type: 'text'
-        authenticationRequestParameters type: 'text'
+        accessTokenRequestParametersJson type: 'text'
+        authenticationRequestParametersJson type: 'text'
     }
 
-    static transients = ['parameters']
+    static transients = ['accessTokenRequestParameters', 'authenticationRequestParameters']
+
+    OpenidConnectProvider(){
+
+    }
 
     OpenidConnectProvider(String label, String createdBy, OpenidConnectProviderType openidConnectProviderType, String url,
                           String authenticationRequestUrl, Map authenticationRequestParameters,

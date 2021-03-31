@@ -1,26 +1,21 @@
 CREATE SCHEMA IF NOT EXISTS openidconnect;
 
 
-create table openidconnect.openid_connect_provider (
-    id uuid not null,
-    version int8 not null,
-    date_created timestamp not null,
-    last_updated timestamp not null,
-    base_url varchar(255) not null,
-    access_token_url varchar(255) not null,
-    created_by varchar(255) not null,
-    parameters_json text not null,
-    openid_connect_provider_type varchar(255) not null,
-    label varchar(255) not null,
-    primary key (id));
-
-
-create table openidconnect.connectopenid_connect_provider_parameters (
-    openid_connect_provider_id uuid not null,
-    parameters_object varchar(255),
-    parameters_idx varchar(255),
-    parameters_elt varchar(255) not null);
-
-create index openidConnectProvider_created_by_idx on openidconnect.openid_connect_provider (created_by);
-alter table if exists openidconnect.openid_connect_provider add constraint UK_hc3bjmsxauf094phcna8sdenr unique (label);
-
+CREATE TABLE openidconnect.openid_connect_provider (
+    id                                     UUID         NOT NULL,
+    version                                INT8         NOT NULL,
+    date_created                           TIMESTAMP    NOT NULL,
+    access_token_request_url               VARCHAR(255) NOT NULL,
+    last_updated                           TIMESTAMP    NOT NULL,
+    base_url                               VARCHAR(255) NOT NULL,
+    authentication_request_parameters_json TEXT         NOT NULL,
+    created_by                             VARCHAR(255) NOT NULL,
+    openid_connect_provider_type           VARCHAR(255) NOT NULL,
+    authentication_request_url             VARCHAR(255) NOT NULL,
+    access_token_request_parameters_json   TEXT         NOT NULL,
+    label                                  VARCHAR(255) NOT NULL,
+    PRIMARY KEY (id)
+);
+CREATE
+index openidConnectProvider_created_by_idx ON openidconnect.openid_connect_provider (created_by);
+ALTER TABLE if EXISTS openidconnect.openid_connect_provider ADD CONSTRAINT UK_hc3bjmsxauf094phcna8sdenr UNIQUE (label);
