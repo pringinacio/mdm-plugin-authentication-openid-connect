@@ -18,8 +18,8 @@ maurodatamapper:
     openidConnect:
         google:
             enabled: true
-            clientid: 894713962139-bcggqkmpj45gu5v58o5mc9qc89f3tk16.apps.googleusercontent.com
-            clientSecret: clientSecret
+            clientid: '894713962139-bcggqkmpj45gu5v58o5mc9qc89f3tk16.apps.googleusercontent.com'
+            clientSecret: 'Qa3PycVansOZ5ivwx-Dx8PHT'
             redirectUri: http://localhost:8080
         microsoft:
             enabled: true

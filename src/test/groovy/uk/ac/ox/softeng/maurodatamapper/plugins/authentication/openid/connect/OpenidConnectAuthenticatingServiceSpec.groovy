@@ -42,18 +42,7 @@ class OpenidConnectAuthenticatingServiceSpec extends BaseUnitSpec implements Ser
         id = openidConnectProvider1.id
     }
 
-    void 'test authenticating user  with no authentication token'() {
-        expect:
-        !service.authenticateAndObtainUser([session: currentSession, oauthProviderString: 'Test OpenidConnect Keycloak', accessCode: ''])
-
-    }
-
-    void 'test authenticating user with random authentication token'() {
-        expect:
-        !service.authenticateAndObtainUser([session: currentSession, oauthProviderString: 'Test OpenidConnect Keycloak', accessCode: 'ThisIsARandomAccessCode-1234567890'])
-    }
-
     def cleanup() {
     }
-    
+
 }

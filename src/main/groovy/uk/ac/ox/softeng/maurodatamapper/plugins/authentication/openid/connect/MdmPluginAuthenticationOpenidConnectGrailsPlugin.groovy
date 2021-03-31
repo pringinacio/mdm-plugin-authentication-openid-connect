@@ -59,8 +59,8 @@ This plugin implements OpenID Connect integration for Keycloak, Google and Micro
     //    def scm = [ url: "http://svn.codehaus.org/grails-plugins/" ]
 
     def dependsOn = [
-            mdmCore     : '4.2.0 > *',
-            mdmSecurity : '4.2.0 > *'
+            mdmCore     : '4.3.0 > *',
+            mdmSecurity : '4.3.0 > *'
     ]
 
     Closure doWithSpring() {

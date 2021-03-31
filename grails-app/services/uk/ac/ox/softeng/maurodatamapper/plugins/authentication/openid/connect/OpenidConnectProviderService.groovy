@@ -28,4 +28,8 @@ class OpenidConnectProviderService {
     OpenidConnectProvider findByOpenidConnectProviderType(OpenidConnectProviderType openidConnectProviderType){
         OpenidConnectProvider.findByOpenidConnectProviderType(openidConnectProviderType)
     }
+
+    OpenidConnectProvider findByLabel(String label){
+        OpenidConnectProvider.findByLabel(label)
+    }
 }
