@@ -17,6 +17,9 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
+import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.CallableConstraints
+import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.CreatorAwareConstraints
+
 import grails.rest.Resource
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
@@ -27,7 +30,6 @@ class OpenidConnectProvider implements CreatorAware {
 
     UUID id
     String label
-    String createdBy
     OpenidConnectProviderType openidConnectProviderType
 
     String baseUrl
@@ -39,6 +41,7 @@ class OpenidConnectProvider implements CreatorAware {
     String accessTokenRequestParametersJson
 
     static constraints = {
+        CallableConstraints.call(CreatorAwareConstraints, delegate)
         label unique: true
     }
 
@@ -50,24 +53,6 @@ class OpenidConnectProvider implements CreatorAware {
     static transients = ['accessTokenRequestParameters', 'authenticationRequestParameters']
 
     OpenidConnectProvider(){
-
-    }
-
-    OpenidConnectProvider(String label, String createdBy, OpenidConnectProviderType openidConnectProviderType, String url,
-                          String authenticationRequestUrl, Map authenticationRequestParameters,
-                          String accessTokenRequestUrl, Map accessTokenRequestParameters){
-        this.label = label
-        this.createdBy = createdBy
-        this.openidConnectProviderType = openidConnectProviderType
-        this.baseUrl = url
-        this.authenticationRequestUrl = authenticationRequestUrl
-        this.authenticationRequestParameters = authenticationRequestParameters
-        this.authenticationRequestParametersJson = ''
-        this.accessTokenRequestUrl = accessTokenRequestUrl
-        this.accessTokenRequestParameters = accessTokenRequestParameters
-        this.accessTokenRequestParametersJson = ''
-
-
     }
 
     @Override
@@ -75,19 +60,19 @@ class OpenidConnectProvider implements CreatorAware {
         OpenidConnectProvider.simpleName
     }
 
-    def beforeInsert(){
+    def beforeValidate(){
         this.authenticationRequestParametersJson = new JsonBuilder(this.authenticationRequestParameters).toString()
         this.accessTokenRequestParametersJson = new JsonBuilder(this.accessTokenRequestParameters).toString()
     }
 
     Map getAccessTokenRequestParameters(){
         if (!accessTokenRequestParameters && accessTokenRequestParametersJson) accessTokenRequestParameters = new JsonSlurper().parseText(accessTokenRequestParametersJson) as Map
-        accessTokenRequestParameters
+        accessTokenRequestParameters?:[:]
     }
 
     Map getAuthenticationRequestParameters(){
         if (!authenticationRequestParameters && authenticationRequestParametersJson) authenticationRequestParameters = new JsonSlurper().parseText(authenticationRequestParametersJson) as Map
-        authenticationRequestParameters
+        authenticationRequestParameters?:[:]
     }
 
 }

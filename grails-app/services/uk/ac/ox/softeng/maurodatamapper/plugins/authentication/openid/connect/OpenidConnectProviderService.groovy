@@ -31,7 +31,7 @@ class OpenidConnectProviderService {
     }
 
     List<OpenidConnectProvider> list(Map pagination){
-        pagination ? OpenidConnectProvider.list(pagination) : OpenidConnectProvider.list()
+        OpenidConnectProvider.list(pagination)
     }
 
     void save(OpenidConnectProvider openidConnectProvider){
@@ -40,10 +40,6 @@ class OpenidConnectProviderService {
 
     void delete(OpenidConnectProvider openidConnectProvider){
         openidConnectProvider.delete(flush: true)
-    }
-
-    OpenidConnectProvider findByOpenidConnectProviderType(OpenidConnectProviderType openidConnectProviderType){
-        OpenidConnectProvider.findByOpenidConnectProviderType(openidConnectProviderType)
     }
 
     OpenidConnectProvider findByLabel(String label){

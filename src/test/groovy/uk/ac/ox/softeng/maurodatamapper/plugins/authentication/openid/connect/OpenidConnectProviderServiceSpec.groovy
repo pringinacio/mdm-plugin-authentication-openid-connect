@@ -17,68 +17,23 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
-import grails.testing.services.ServiceUnitTest
-import spock.lang.Specification
+import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels
 import uk.ac.ox.softeng.maurodatamapper.test.unit.BaseUnitSpec
 
-class OpenidConnectProviderServiceSpec extends BaseUnitSpec implements ServiceUnitTest<OpenidConnectProviderService>{
+import grails.testing.services.ServiceUnitTest
+
+class OpenidConnectProviderServiceSpec extends BaseUnitSpec implements ServiceUnitTest<OpenidConnectProviderService> {
 
     UUID id
 
     def setup() {
         mockArtefact(OpenidConnectProviderService)
-
         mockDomains(OpenidConnectProvider)
 
-
-        OpenidConnectProvider openidConnectProvider1 = new OpenidConnectProvider(
-                'Development Test Provider 1',
-                'mdm-dev',
-                OpenidConnectProviderType.GOOGLE,
-                "google.com",
-                "o/oauth2/v2/auth",
-                [
-                        client_id: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.clientid'),
-                        response_type: 'code&',
-                        scope: 'openid email',
-                        redirect_uri: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.redirectUri'),
-                        state: "Some State",
-                        nonce: UUID.randomUUID().toString()
-                ])
-        OpenidConnectProvider openidConnectProvider2 = new OpenidConnectProvider(
-                'Development Test Provider 2',
-                'mdm-dev',
-                OpenidConnectProviderType.GOOGLE,
-                "google.com",
-                "o/oauth2/v2/auth",
-                [
-                        client_id: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.clientid'),
-                        response_type: 'code&',
-                        scope: 'openid email',
-                        redirect_uri: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.redirectUri'),
-                        state: "Some State",
-                        nonce: UUID.randomUUID().toString()
-                ])
-        OpenidConnectProvider openidConnectProvider3 = new OpenidConnectProvider(
-                'Development Test Provider 3',
-                'mdm-dev',
-                OpenidConnectProviderType.MICROSOFT,
-                "google.com",
-                "o/oauth2/v2/auth",
-                [
-                        client_id: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.clientid'),
-                        response_type: 'code&',
-                        scope: 'openid email',
-                        redirect_uri: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.redirectUri'),
-                        state: "Some State",
-                        nonce: UUID.randomUUID().toString()
-                ])
-
-        checkAndSave(openidConnectProvider1)
-        checkAndSave(openidConnectProvider2)
-        checkAndSave(openidConnectProvider3)
-
-        id = openidConnectProvider1.id
+        id = BootstrapModels.buildAndSaveGoogleProvider(messageSource, grailsApplication.config.maurodatamapper.openidConnect.google).id
+        BootstrapModels.buildAndSaveMicrosoftProvider(messageSource, grailsApplication.config.maurodatamapper.openidConnect.microsoft)
+        BootstrapModels.buildAndSaveKeycloakProvider(messageSource, grailsApplication.config.maurodatamapper.openidConnect.keycloak)
     }
 
     void "test get"() {
@@ -98,10 +53,10 @@ class OpenidConnectProviderServiceSpec extends BaseUnitSpec implements ServiceUn
         def ocp2 = openidConnectProviderList[1]
 
         then:
-        ocp1.label == 'Development Test Provider 1'
+        ocp1.label == BootstrapModels.GOOGLE_OPENID_CONNECT_PROVIDER_NAME
 
         and:
-        ocp2.label == 'Development Test Provider 2'
+        ocp2.label == BootstrapModels.MICROSOFT_OPENID_CONNECT_PROVIDER_NAME
 
     }
 
@@ -128,19 +83,20 @@ class OpenidConnectProviderServiceSpec extends BaseUnitSpec implements ServiceUn
 
         when:
         OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
-                'Development Test Provider 4',
-                'mdm-dev',
-                OpenidConnectProviderType.KEYCLOAK,
-                "google.com",
-                "o/oauth2/v2/auth",
-                [
-                        client_id: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.clientid'),
-                        response_type: 'code&',
-                        scope: 'openid email',
-                        redirect_uri: grailsApplication.config.getProperty('maurodatamapper.openidConnect.google.redirectUri'),
-                        state: "Some State",
-                        nonce: UUID.randomUUID().toString()
-                ])
+            label: 'Development Test Provider 4',
+            createdBy: StandardEmailAddress.UNIT_TEST,
+            openidConnectProviderType: OpenidConnectProviderType.KEYCLOAK,
+            baseUrl: "http://google.com",
+            authenticationRequestUrl: "o/oauth2/v2/auth",
+            authenticationRequestParameters: [
+                client_id    : grailsApplication.config.maurodatamapper.openidConnect.google.clientid,
+                response_type: 'code&',
+                scope        : 'openid email',
+                redirect_uri : grailsApplication.config.maurodatamapper.openidConnect.google.redirectUri,
+                state        : "Some State",
+                nonce        : UUID.randomUUID().toString()
+            ]
+        )
         service.save(openidConnectProvider)
 
         then:

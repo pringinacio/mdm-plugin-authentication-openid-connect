@@ -1,0 +1,26 @@
+maurodatamapper:
+    openidConnect:
+        google:
+            enabled: true
+            clientid: ''
+            clientSecret: ''
+            redirectUri: ''
+        microsoft:
+            enabled: true
+            tenant: ''
+            clientid: ''
+            clientSecret: ''
+            redirectUri: ''
+        keycloak:
+            enabled: true
+            baseUrl: 'https://jenkins.cs.ox.ac.uk'
+            realm: ''
+            clientid: ''
+            clientSecret: ''
+            redirectUri: ''
+environments:
+    production:
+        maurodatamapper:
+            openidConnect:
+                keycloak:
+                    baseUrl: ''
