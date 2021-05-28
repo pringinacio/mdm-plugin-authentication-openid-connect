@@ -19,8 +19,11 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
 
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProvider
+import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
+import uk.ac.ox.softeng.maurodatamapper.security.utils.SecurityDefinition
 
 import grails.core.GrailsApplication
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 
@@ -30,8 +33,11 @@ import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.con
 import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels.buildAndSaveGoogleProvider
 import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels.buildAndSaveKeycloakProvider
 import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels.buildAndSaveMicrosoftProvider
+import static uk.ac.ox.softeng.maurodatamapper.util.GormUtils.checkAndSave
+import static uk.ac.ox.softeng.maurodatamapper.util.GormUtils.checkAndSave
 
-class BootStrap {
+@Slf4j
+class BootStrap implements SecurityDefinition{
 
     GrailsApplication grailsApplication
 
@@ -58,6 +64,19 @@ class BootStrap {
 
             if (keycloakEnabled && OpenidConnectProvider.countByLabel(KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME) == 0) {
                 buildAndSaveKeycloakProvider(messageSource, openidConnectConfig.keycloak)
+            }
+        }
+
+        environments {
+            test{
+                CatalogueUser.withNewTransaction {
+                    createModernSecurityUsers('functionalTest', false)
+                    checkAndSave(messageSource, editor, reader, authenticated, pending, containerAdmin, author, reviewer)
+
+                    createBasicGroups('functionalTest', false)
+                    checkAndSave(messageSource, editors, readers)
+
+                }
             }
         }
     }
