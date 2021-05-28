@@ -31,7 +31,7 @@ class OpenidConnectProviderService {
     }
 
     List<OpenidConnectProvider> list(Map pagination){
-        OpenidConnectProvider.list(pagination)
+        OpenidConnectProvider.by().list(pagination)
     }
 
     void save(OpenidConnectProvider openidConnectProvider){

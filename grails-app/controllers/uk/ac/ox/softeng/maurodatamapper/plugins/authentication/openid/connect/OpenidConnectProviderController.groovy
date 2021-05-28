@@ -19,17 +19,33 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
 import uk.ac.ox.softeng.maurodatamapper.core.controller.EditLoggingController
 
-class OpenidConnectProviderController extends EditLoggingController<OpenidConnectProvider>{
-	static responseFormats = ['json', 'xml']
+import grails.web.servlet.mvc.GrailsParameterMap
+
+class OpenidConnectProviderController extends EditLoggingController<OpenidConnectProvider> {
+    static responseFormats = ['json', 'xml']
 
     OpenidConnectProviderService openidConnectProviderService
 
-    OpenidConnectProviderController(){
+    OpenidConnectProviderController() {
         super(OpenidConnectProvider)
     }
 
     @Override
-    void serviceDeleteResource(OpenidConnectProvider resource){
+    Object index(Integer max) {
+        params.max = Math.min(max ?: 10, 100)
+        def res = listAllResources(params)
+        // The new grails-views code sets the modelAndView object rather than writing the response
+        // Therefore if thats written then we dont want to try and re-write it
+        if (response.isCommitted() || modelAndView) return
+        respond res, [
+            model: [
+                openAccess: (params as GrailsParameterMap).boolean('openAccess')
+            ],
+            view : 'index']
+    }
+
+    @Override
+    void serviceDeleteResource(OpenidConnectProvider resource) {
         openidConnectProviderService.delete(resource)
     }
 

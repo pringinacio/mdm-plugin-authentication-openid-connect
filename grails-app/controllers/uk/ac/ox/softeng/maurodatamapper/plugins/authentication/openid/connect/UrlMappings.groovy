@@ -17,16 +17,16 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
-
 import static uk.ac.ox.softeng.maurodatamapper.core.web.mapping.UrlMappingActions.DEFAULT_EXCLUDES
-import static uk.ac.ox.softeng.maurodatamapper.core.web.mapping.UrlMappingActions.INCLUDES_INDEX_ONLY
 
 class UrlMappings {
 
     static mappings = {
         group '/api', {
             '/admin/openidConnectProviders'(resources: 'openidConnectProvider', excludes: DEFAULT_EXCLUDES)
-            '/openidConnectProviders'(resources: 'openidConnectProvider', includes: INCLUDES_INDEX_ONLY)
+            get '/openidConnectProviders'(controller: 'openidConnectProvider', action: 'index') {
+                openAccess = true
+            }
         }
     }
 }

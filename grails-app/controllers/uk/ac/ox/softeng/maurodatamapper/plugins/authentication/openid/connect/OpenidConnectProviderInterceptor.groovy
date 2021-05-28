@@ -21,6 +21,8 @@ import uk.ac.ox.softeng.maurodatamapper.core.interceptor.SecurableResourceInterc
 import uk.ac.ox.softeng.maurodatamapper.security.SecurableResource
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
+import grails.web.servlet.mvc.GrailsParameterMap
+
 class OpenidConnectProviderInterceptor extends SecurableResourceInterceptor {
 
     @Override
@@ -40,7 +42,7 @@ class OpenidConnectProviderInterceptor extends SecurableResourceInterceptor {
     }
 
     boolean before() {
-        if (isIndex()) return true
+        if (isIndex() && (params as GrailsParameterMap).boolean('openAccess')) return true
         currentUserSecurityPolicyManager.isApplicationAdministrator() ?: forbiddenDueToNotApplicationAdministrator()
     }
 }

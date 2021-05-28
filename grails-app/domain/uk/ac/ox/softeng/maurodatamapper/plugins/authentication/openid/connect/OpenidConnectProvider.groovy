@@ -19,13 +19,14 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
 import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.CallableConstraints
 import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.CreatorAwareConstraints
+import uk.ac.ox.softeng.maurodatamapper.traits.domain.CreatorAware
 
+import grails.gorm.DetachedCriteria
 import grails.rest.Resource
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
-import uk.ac.ox.softeng.maurodatamapper.traits.domain.CreatorAware
 
-@Resource(readOnly = false, formats=['json','xml'])
+@Resource(readOnly = false, formats = ['json', 'xml'])
 class OpenidConnectProvider implements CreatorAware {
 
     UUID id
@@ -34,15 +35,21 @@ class OpenidConnectProvider implements CreatorAware {
 
     String baseUrl
     String authenticationRequestUrl
-    Map authenticationRequestParameters
+
     String authenticationRequestParametersJson
     String accessTokenRequestUrl
-    Map accessTokenRequestParameters
+
     String accessTokenRequestParametersJson
+
+    Map<String, Object> authenticationRequestParameters
+    Map<String, Object> accessTokenRequestParameters
 
     static constraints = {
         CallableConstraints.call(CreatorAwareConstraints, delegate)
-        label unique: true
+        label unique: true, blank: false
+        baseUrl blank: false
+        authenticationRequestUrl blank: false
+        accessTokenRequestUrl blank: false
     }
 
     static mapping = {
@@ -52,7 +59,7 @@ class OpenidConnectProvider implements CreatorAware {
 
     static transients = ['accessTokenRequestParameters', 'authenticationRequestParameters']
 
-    OpenidConnectProvider(){
+    OpenidConnectProvider() {
     }
 
     @Override
@@ -60,19 +67,48 @@ class OpenidConnectProvider implements CreatorAware {
         OpenidConnectProvider.simpleName
     }
 
-    def beforeValidate(){
-        this.authenticationRequestParametersJson = new JsonBuilder(this.authenticationRequestParameters).toString()
-        this.accessTokenRequestParametersJson = new JsonBuilder(this.accessTokenRequestParameters).toString()
+    def beforeValidate() {
+        this.authenticationRequestParametersJson = convertMapParametersToJson(this.authenticationRequestParameters)
+        this.accessTokenRequestParametersJson = convertMapParametersToJson(this.accessTokenRequestParameters)
     }
 
-    Map getAccessTokenRequestParameters(){
-        if (!accessTokenRequestParameters && accessTokenRequestParametersJson) accessTokenRequestParameters = new JsonSlurper().parseText(accessTokenRequestParametersJson) as Map
-        accessTokenRequestParameters?:[:]
+    void setAuthenticationRequestParameters(Map<String, Object> authenticationRequestParameters) {
+        this.authenticationRequestParameters = authenticationRequestParameters
+        this.authenticationRequestParametersJson = convertMapParametersToJson(authenticationRequestParameters)
     }
 
-    Map getAuthenticationRequestParameters(){
-        if (!authenticationRequestParameters && authenticationRequestParametersJson) authenticationRequestParameters = new JsonSlurper().parseText(authenticationRequestParametersJson) as Map
-        authenticationRequestParameters?:[:]
+    void setAccessTokenRequestParameters(Map<String, Object> accessTokenRequestParameters) {
+        this.accessTokenRequestParameters = accessTokenRequestParameters
+        this.accessTokenRequestParametersJson = convertMapParametersToJson(accessTokenRequestParameters)
     }
 
+    void setAuthenticationRequestParameters(String authenticationRequestParameters) {
+        this.authenticationRequestParametersJson = authenticationRequestParameters
+        this.authenticationRequestParameters = convertJsonParametersToMap(authenticationRequestParameters)
+    }
+
+    void setAccessTokenRequestParameters(String accessTokenRequestParameters) {
+        this.accessTokenRequestParametersJson = accessTokenRequestParameters
+        this.accessTokenRequestParameters = convertJsonParametersToMap(accessTokenRequestParameters)
+    }
+
+    Map<String, Object> getAuthenticationRequestParameters() {
+        authenticationRequestParameters ?: convertJsonParametersToMap(this.authenticationRequestParametersJson)
+    }
+
+    Map<String, Object> getAccessTokenRequestParameters() {
+        accessTokenRequestParameters ?: convertJsonParametersToMap(this.accessTokenRequestParametersJson)
+    }
+
+    static DetachedCriteria<OpenidConnectProvider> by() {
+        new DetachedCriteria<OpenidConnectProvider>(OpenidConnectProvider)
+    }
+
+    static Map convertJsonParametersToMap(String json) {
+        json ? new JsonSlurper().parseText(json) as Map : [:]
+    }
+
+    static String convertMapParametersToJson(Map map) {
+        map ? new JsonBuilder(map).toString() : ''
+    }
 }
