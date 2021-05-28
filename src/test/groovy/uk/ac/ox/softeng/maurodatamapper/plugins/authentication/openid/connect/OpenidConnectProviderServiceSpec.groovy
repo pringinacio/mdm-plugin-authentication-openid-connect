@@ -88,6 +88,7 @@ class OpenidConnectProviderServiceSpec extends BaseUnitSpec implements ServiceUn
             openidConnectProviderType: OpenidConnectProviderType.KEYCLOAK,
             baseUrl: "http://google.com",
             authenticationRequestUrl: "o/oauth2/v2/auth",
+            accessTokenRequestUrl: "o/oauth2/v2/auth",
             authenticationRequestParameters: [
                 client_id    : grailsApplication.config.maurodatamapper.openidConnect.google.clientid,
                 response_type: 'code&',
@@ -97,6 +98,7 @@ class OpenidConnectProviderServiceSpec extends BaseUnitSpec implements ServiceUn
                 nonce        : UUID.randomUUID().toString()
             ]
         )
+        check(openidConnectProvider)
         service.save(openidConnectProvider)
 
         then:
