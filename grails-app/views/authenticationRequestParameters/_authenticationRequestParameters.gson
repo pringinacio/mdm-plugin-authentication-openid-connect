@@ -1,0 +1,19 @@
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.parameters.AuthenticationRequestParameters
+
+model {
+    AuthenticationRequestParameters authenticationRequestParameters
+}
+
+json {
+    scope authenticationRequestParameters.scope
+    responseType authenticationRequestParameters.responseType
+//    clientId authenticationRequestParameters.clientId
+    if (authenticationRequestParameters.responseMode) responseMode authenticationRequestParameters.responseMode
+    if (authenticationRequestParameters.display) display authenticationRequestParameters.display?.toString()?.toLowerCase()
+    if (authenticationRequestParameters.prompt) prompt authenticationRequestParameters.prompt?.toString()?.toLowerCase()
+    if (authenticationRequestParameters.maxAge) maxAge authenticationRequestParameters.maxAge == null ?: authenticationRequestParameters.maxAge.toString()
+    if (authenticationRequestParameters.uiLocales) uiLocales authenticationRequestParameters.uiLocales
+    if (authenticationRequestParameters.idTokenHint) idTokenHint authenticationRequestParameters.idTokenHint
+    if (authenticationRequestParameters.loginHint) loginHint authenticationRequestParameters.loginHint
+    if (authenticationRequestParameters.acrValues) acrValues authenticationRequestParameters.acrValues
+}
