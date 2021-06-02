@@ -1,14 +1,13 @@
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProvider
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 
 import grails.gorm.PagedResultList
 
 model {
     Iterable<OpenidConnectProvider> openidConnectProviderList
-    Boolean openAccess
 }
 
 json {
     count openidConnectProviderList instanceof PagedResultList ? ((PagedResultList) openidConnectProviderList).getTotalCount() : openidConnectProviderList?.size() ?: 0
-    items tmpl.openidConnectProvider(openidConnectProviderList ?: [], [openAccess: openAccess])
+    items tmpl.openidConnectProvider(openidConnectProviderList ?: [])
 }
 
