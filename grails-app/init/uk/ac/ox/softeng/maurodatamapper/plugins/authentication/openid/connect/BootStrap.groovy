@@ -17,8 +17,8 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
-
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProvider
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.details.DiscoveryDocumentService
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
 import uk.ac.ox.softeng.maurodatamapper.security.utils.SecurityDefinition
 
@@ -44,6 +44,8 @@ class BootStrap implements SecurityDefinition{
     @Autowired
     MessageSource messageSource
 
+    DiscoveryDocumentService discoveryDocumentService
+
     def init = {servletContext ->
 
         Map openidConnectConfig = grailsApplication.config.maurodatamapper.openidConnect
@@ -55,15 +57,15 @@ class BootStrap implements SecurityDefinition{
         OpenidConnectProvider.withNewTransaction {
 
             if (googleEnabled && OpenidConnectProvider.countByLabel(GOOGLE_OPENID_CONNECT_PROVIDER_NAME) == 0) {
-                buildAndSaveGoogleProvider(messageSource, openidConnectConfig.google)
+                buildAndSaveGoogleProvider(messageSource, openidConnectConfig.google, discoveryDocumentService)
             }
 
             if (microsoftEnabled && OpenidConnectProvider.countByLabel(MICROSOFT_OPENID_CONNECT_PROVIDER_NAME) == 0) {
-                buildAndSaveMicrosoftProvider(messageSource, openidConnectConfig.microsoft)
+                buildAndSaveMicrosoftProvider(messageSource, openidConnectConfig.microsoft, discoveryDocumentService)
             }
 
             if (keycloakEnabled && OpenidConnectProvider.countByLabel(KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME) == 0) {
-                buildAndSaveKeycloakProvider(messageSource, openidConnectConfig.keycloak)
+                buildAndSaveKeycloakProvider(messageSource, openidConnectConfig.keycloak, discoveryDocumentService)
             }
         }
 

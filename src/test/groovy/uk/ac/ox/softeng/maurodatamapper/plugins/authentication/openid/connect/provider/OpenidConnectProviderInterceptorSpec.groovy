@@ -15,8 +15,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
+package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider
 
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProviderInterceptor
 
 import grails.testing.web.interceptor.InterceptorUnitTest
 import grails.views.mvc.GenericGroovyTemplateViewResolver

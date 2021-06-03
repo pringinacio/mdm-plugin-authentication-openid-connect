@@ -18,8 +18,9 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap
 
 import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProviderType
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.details.DiscoveryDocumentService
 
 import groovy.util.logging.Slf4j
 import org.springframework.context.MessageSource
@@ -36,82 +37,50 @@ class BootstrapModels {
     public static final String MICROSOFT_OPENID_CONNECT_PROVIDER_NAME = 'Microsoft Openid-Connect Provider'
     public static final String KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME = 'Keycloak Openid-Connect Provider'
 
-    static OpenidConnectProvider buildAndSaveGoogleProvider(MessageSource messageSource, Map openidConnectConfig) {
+    static OpenidConnectProvider buildAndSaveGoogleProvider(MessageSource messageSource, Map openidConnectConfig, DiscoveryDocumentService discoveryDocumentService) {
         log.info('Adding {}', GOOGLE_OPENID_CONNECT_PROVIDER_NAME)
         OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
             label: GOOGLE_OPENID_CONNECT_PROVIDER_NAME,
             createdBy: StandardEmailAddress.ADMIN,
             openidConnectProviderType: OpenidConnectProviderType.GOOGLE,
-            baseUrl: "http://google.com",
-            authenticationRequestUrl: "o/oauth2/v2/auth",
-            authenticationRequestParameters: [
-                client_id    : openidConnectConfig.clientid,
-                response_type: 'code',
-                scope        : 'openid email',
-                redirect_uri : openidConnectConfig.redirectUri,
-
-            ],
-            accessTokenRequestUrl: "https://oauth2.googleapis.com/token",
-            accessTokenRequestParameters: [
-                client_id    : openidConnectConfig.clientid,
-                client_secret: openidConnectConfig.clientSecret,
-                redirect_uri : openidConnectConfig.redirectUri,
-                grant_type   : "authorization_code"
-            ])
+            discoveryDocumentUrl: "https://accounts.google.com/.well-known/openid-configuration",
+            clientId: openidConnectConfig.clientId,
+            clientSecret: openidConnectConfig.clientSecret,
+            )
+        openidConnectProvider.discoveryDocument = discoveryDocumentService.loadDiscoveryDocumentForOpenidConnectProvider(openidConnectProvider)
         checkAndSave(messageSource, openidConnectProvider)
         openidConnectProvider
     }
 
-    static OpenidConnectProvider buildAndSaveMicrosoftProvider(MessageSource messageSource, Map openidConnectConfig) {
+    static OpenidConnectProvider buildAndSaveMicrosoftProvider(MessageSource messageSource, Map openidConnectConfig, DiscoveryDocumentService discoveryDocumentService) {
         log.info('Adding {}', MICROSOFT_OPENID_CONNECT_PROVIDER_NAME)
         OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
             label: MICROSOFT_OPENID_CONNECT_PROVIDER_NAME,
             createdBy: StandardEmailAddress.ADMIN,
             openidConnectProviderType: OpenidConnectProviderType.MICROSOFT,
-            baseUrl: "https://login.microsoftonline.com",
-            authenticationRequestUrl: "${openidConnectConfig.tenant}/oauth2/v2.0/authorize",
-            authenticationRequestParameters: [
-                client_id    : openidConnectConfig.clientid,
-                response_type: 'code',
-                scope        : 'openid email',
-                redirect_uri : openidConnectConfig.redirectUri,
-            ],
-            accessTokenRequestUrl: "${openidConnectConfig.tenant}/oauth2/v2.0/token",
-            accessTokenRequestParameters: [
-                client_id    : openidConnectConfig.clientid,
-                client_secret: openidConnectConfig.clientSecret,
-                grant_type   : "authorization_code",
-                redirect_uri : openidConnectConfig.redirectUri
+            discoveryDocumentUrl: 'https://login.microsoftonline.com/common/.well-known/openid-configuration',
+            clientId: openidConnectConfig.clientId,
+            clientSecret: openidConnectConfig.clientSecret,
+            )
+        openidConnectProvider.discoveryDocument = discoveryDocumentService.loadDiscoveryDocumentForOpenidConnectProvider(openidConnectProvider)
 
-            ]
-        )
+        openidConnectProvider.discoveryDocument.issuer = openidConnectProvider.discoveryDocument.issuer.replace('{tenantid}', openidConnectConfig.clientId)
+
         checkAndSave(messageSource, openidConnectProvider)
         openidConnectProvider
     }
 
-    static OpenidConnectProvider buildAndSaveKeycloakProvider(MessageSource messageSource, Map openidConnectConfig) {
+    static OpenidConnectProvider buildAndSaveKeycloakProvider(MessageSource messageSource, Map openidConnectConfig, DiscoveryDocumentService discoveryDocumentService) {
         log.info('Adding {}', KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME)
         OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
             label: KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME,
             createdBy: StandardEmailAddress.ADMIN,
             openidConnectProviderType: OpenidConnectProviderType.KEYCLOAK,
-            baseUrl: openidConnectConfig.baseUrl,
-            authenticationRequestUrl: "/realms/${openidConnectConfig.realm}/protocol/openid-connect/auth",
-            authenticationRequestParameters: [
-                client_id    : openidConnectConfig.clientid,
-                response_type: 'code',
-                scope        : 'openid email',
-                redirect_uri : openidConnectConfig.redirectUri,
-            ],
-            accessTokenRequestUrl: "/realms/${openidConnectConfig.realm}/protocol/openid-connect/token",
-            accessTokenRequestParameters: [
-                client_id    : openidConnectConfig.clientid,
-                client_secret: openidConnectConfig.clientSecret,
-                grant_type   : "authorization_code",
-                redirect_uri : openidConnectConfig.redirectUri
-
-            ]
-        )
+            discoveryDocumentUrl: "${openidConnectConfig.baseUrl}/realms/${openidConnectConfig.realm}/.well-known/openid-configuration",
+            clientId: openidConnectConfig.clientId,
+            clientSecret: openidConnectConfig.clientSecret,
+            )
+        openidConnectProvider.discoveryDocument = discoveryDocumentService.loadDiscoveryDocumentForOpenidConnectProvider(openidConnectProvider)
         checkAndSave(messageSource, openidConnectProvider)
         openidConnectProvider
     }

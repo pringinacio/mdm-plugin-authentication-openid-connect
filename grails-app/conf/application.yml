@@ -17,20 +17,16 @@ maurodatamapper:
         url: http://localhost
     openidConnect:
         google:
-            clientid: '894713962139-bcggqkmpj45gu5v58o5mc9qc89f3tk16.apps.googleusercontent.com'
+            clientId: '894713962139-bcggqkmpj45gu5v58o5mc9qc89f3tk16.apps.googleusercontent.com'
             clientSecret: 'Qa3PycVansOZ5ivwx-Dx8PHT'
-            redirectUri: http://localhost:8080
         microsoft:
-            clientid: microsoftClientId
+            clientId: microsoftClientId
             clientSecret: clientSecret
-            redirectUri: http://localhost:8080
-            tenant: organizations
         keycloak:
             baseUrl: https://jenkins.cs.ox.ac.uk/auth
             realm: 'test'
-            clientid: mdm
+            clientId: mdm
             clientSecret: '4b3b7290-7629-4b88-b310-df256adc8fed'
-            redirectUri: http://localhost:8080
 grails:
     profile: rest-api-plugin
     codegen:

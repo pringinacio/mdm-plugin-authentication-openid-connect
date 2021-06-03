@@ -15,10 +15,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
+package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider
 
 import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProviderType
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProviderService
 import uk.ac.ox.softeng.maurodatamapper.test.unit.BaseUnitSpec
 
 import grails.testing.services.ServiceUnitTest
@@ -31,9 +34,9 @@ class OpenidConnectProviderServiceSpec extends BaseUnitSpec implements ServiceUn
         mockArtefact(OpenidConnectProviderService)
         mockDomains(OpenidConnectProvider)
 
-        id = BootstrapModels.buildAndSaveGoogleProvider(messageSource, grailsApplication.config.maurodatamapper.openidConnect.google).id
-        BootstrapModels.buildAndSaveMicrosoftProvider(messageSource, grailsApplication.config.maurodatamapper.openidConnect.microsoft)
-        BootstrapModels.buildAndSaveKeycloakProvider(messageSource, grailsApplication.config.maurodatamapper.openidConnect.keycloak)
+        id = BootstrapModels.buildAndSaveGoogleProvider(messageSource, grailsApplication.config.maurodatamapper.openidConnect.google, null).id
+        BootstrapModels.buildAndSaveMicrosoftProvider(messageSource, grailsApplication.config.maurodatamapper.openidConnect.microsoft, null)
+        BootstrapModels.buildAndSaveKeycloakProvider(messageSource, grailsApplication.config.maurodatamapper.openidConnect.keycloak, null)
     }
 
     void "test get"() {
@@ -86,18 +89,10 @@ class OpenidConnectProviderServiceSpec extends BaseUnitSpec implements ServiceUn
             label: 'Development Test Provider 4',
             createdBy: StandardEmailAddress.UNIT_TEST,
             openidConnectProviderType: OpenidConnectProviderType.KEYCLOAK,
-            baseUrl: "http://google.com",
-            authenticationRequestUrl: "o/oauth2/v2/auth",
-            accessTokenRequestUrl: "o/oauth2/v2/auth",
-            authenticationRequestParameters: [
-                client_id    : grailsApplication.config.maurodatamapper.openidConnect.google.clientid,
-                response_type: 'code&',
-                scope        : 'openid email',
-                redirect_uri : grailsApplication.config.maurodatamapper.openidConnect.google.redirectUri,
-                state        : "Some State",
-                nonce        : UUID.randomUUID().toString()
-            ]
-        )
+            discoveryDocumentUrl: 'https://jenkins.ox.ac.uk/auth',
+            clientId: 'testing',
+            clientSecret: 'ldsjhfjksdhkjskds',
+            )
         check(openidConnectProvider)
         service.save(openidConnectProvider)
 

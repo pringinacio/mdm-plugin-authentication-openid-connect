@@ -4,6 +4,7 @@ maurodatamapper:
             enabled: true
         microsoft:
             enabled: true
+            tenant: common
         keycloak:
             enabled: true
-            baseUrl: http://localhost
+            issuerUrl: http://localhost

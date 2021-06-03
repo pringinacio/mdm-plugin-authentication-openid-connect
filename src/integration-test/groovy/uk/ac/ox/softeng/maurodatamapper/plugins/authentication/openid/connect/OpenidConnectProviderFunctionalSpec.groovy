@@ -17,11 +17,13 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
-
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.test.FunctionalSpec
 
 import grails.testing.mixin.integration.Integration
 import groovy.util.logging.Slf4j
+import io.micronaut.core.type.Argument
+import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
 
 import static io.micronaut.http.HttpStatus.CREATED
@@ -43,35 +45,30 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
     }
 
     Map getValidJson() {
-        [label                          : 'Functional Test Provider 4',
-         openidConnectProviderType      : OpenidConnectProviderType.OTHER,
-         baseUrl                        : "http://test.com",
-         authenticationRequestUrl       : "o/oauth2/v2/auth",
-         accessTokenRequestUrl          : "o/oauth2/v2/auth",
-         authenticationRequestParameters: [
-             client_id    : 'testing',
-             client_secret: 'c2e94d1c-35c3-4555-b29d-e94162a8618d',
-             redirect_uri : 'http://backToHere.com',
-         ]
+        [label                    : 'Functional Test Provider 4',
+         openidConnectProviderType: OpenidConnectProviderType.OTHER,
+         issuerUrl                : "http://test.com",
+         authenticationEndpoint   : "o/oauth2/v2/auth",
+         accessTokenEndpoint      : "o/oauth2/v2/auth",
+         certificateEndpoint      : "o/oauth2/v2/auth",
+         clientId                 : 'testing',
+         clientSecret             : 'c2e94d1c'
         ]
     }
 
     Map getInvalidJson() {
         [label                    : 'Functional Test Provider 4',
          openidConnectProviderType: OpenidConnectProviderType.OTHER,
-         baseUrl                  : "",
-         accessTokenRequestUrl    : "",
-         authenticationRequestUrl : ""
+         issuerUrl                  : "",
+         accessTokenEndpoint      : "",
+         authenticationEndpoint   : ""
         ]
     }
 
     Map getValidUpdateJson() {
-        [accessTokenRequestUrl       : "o/oauth2/v2/accessToken",
-         accessTokenRequestParameters: [
-             client_id    : 'testing',
-             client_secret: 'c2e94d1c-35c3-4555-b29d-e94162a8618d',
-             redirect_uri : 'http://backToHere.com',
-         ]
+        [accessTokenEndpoint: "o/oauth2/v2/accessToken",
+         clientId           : 'testing',
+
         ]
     }
 
@@ -80,65 +77,15 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
   "id": "${json-unit.matches:id}",
   "label": "Functional Test Provider 4",
   "openidConnectProviderType": "OTHER",
-  "baseUrl": "http://test.com",
-  "accessTokenRequestUrl": "o/oauth2/v2/auth",
-  "accessTokenRequestParameters": {
-    
-  },
-  "authenticationRequestUrl": "o/oauth2/v2/auth",
+  "issuerUrl": "http://test.com",
+  "clientId": "testing",
+  "clientSecret": "c2e94d1c",
+  "accessTokenEndpoint": "o/oauth2/v2/auth",
+  "authenticationEndpoint": "o/oauth2/v2/auth",
   "authenticationRequestParameters": {
-    "client_id": "testing",
-    "client_secret": "${json-unit.matches:id}",
-    "redirect_uri": "http://backToHere.com"
+    "scope": "openid email",
+    "responseType": "code"
   }
-}
-'''
-    }
-
-    String getPublicIndexJson() {
-        '''{
-  "count": 3,
-  "items": [
-    {
-      "id": "${json-unit.matches:id}",
-      "label": "Google Openid-Connect Provider",
-      "openidConnectProviderType": "GOOGLE",
-      "baseUrl": "http://google.com",
-      "accessTokenRequestUrl": "https://oauth2.googleapis.com/token",
-      "accessTokenRequestParameters": {
-        "client_id": "894713962139-bcggqkmpj45gu5v58o5mc9qc89f3tk16.apps.googleusercontent.com",
-        "client_secret": "Qa3PycVansOZ5ivwx-Dx8PHT",
-        "redirect_uri": "http://localhost:8080",
-        "grant_type": "authorization_code"
-      }
-    },
-    {
-      "id": "${json-unit.matches:id}",
-      "label": "Keycloak Openid-Connect Provider",
-      "openidConnectProviderType": "KEYCLOAK",
-      "baseUrl": "https://jenkins.cs.ox.ac.uk/auth",
-      "accessTokenRequestUrl": "/realms/test/protocol/openid-connect/token",
-      "accessTokenRequestParameters": {
-        "client_id": "mdm",
-        "client_secret": "${json-unit.matches:id}",
-        "grant_type": "authorization_code",
-        "redirect_uri": "http://localhost:8080"
-      }
-    },
-    {
-      "id": "${json-unit.matches:id}",
-      "label": "Microsoft Openid-Connect Provider",
-      "openidConnectProviderType": "MICROSOFT",
-      "baseUrl": "https://login.microsoftonline.com",
-      "accessTokenRequestUrl": "organizations/oauth2/v2.0/token",
-      "accessTokenRequestParameters": {
-        "client_id": "microsoftClientId",
-        "client_secret": "clientSecret",
-        "grant_type": "authorization_code",
-        "redirect_uri": "http://localhost:8080"
-      }
-    }
-  ]
 }'''
     }
 
@@ -150,60 +97,42 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
       "id": "${json-unit.matches:id}",
       "label": "Google Openid-Connect Provider",
       "openidConnectProviderType": "GOOGLE",
-      "baseUrl": "http://google.com",
-      "accessTokenRequestUrl": "https://oauth2.googleapis.com/token",
-      "accessTokenRequestParameters": {
-        "client_id": "894713962139-bcggqkmpj45gu5v58o5mc9qc89f3tk16.apps.googleusercontent.com",
-        "client_secret": "Qa3PycVansOZ5ivwx-Dx8PHT",
-        "redirect_uri": "http://localhost:8080",
-        "grant_type": "authorization_code"
-      },
-      "authenticationRequestUrl": "o/oauth2/v2/auth",
+      "issuerUrl": "http://google.com",
+      "clientId": "894713962139-bcggqkmpj45gu5v58o5mc9qc89f3tk16.apps.googleusercontent.com",
+      "clientSecret": "Qa3PycVansOZ5ivwx-Dx8PHT",
+      "accessTokenEndpoint": "https://oauth2.googleapis.com/token",
+      "authenticationEndpoint": "o/oauth2/v2/auth",
       "authenticationRequestParameters": {
-        "client_id": "894713962139-bcggqkmpj45gu5v58o5mc9qc89f3tk16.apps.googleusercontent.com",
-        "response_type": "code",
         "scope": "openid email",
-        "redirect_uri": "http://localhost:8080"
+        "responseType": "code"
       }
     },
     {
       "id": "${json-unit.matches:id}",
       "label": "Keycloak Openid-Connect Provider",
       "openidConnectProviderType": "KEYCLOAK",
-      "baseUrl": "https://jenkins.cs.ox.ac.uk/auth",
-      "accessTokenRequestUrl": "/realms/test/protocol/openid-connect/token",
-      "accessTokenRequestParameters": {
-        "client_id": "mdm",
-        "client_secret": "${json-unit.matches:id}",
-        "grant_type": "authorization_code",
-        "redirect_uri": "http://localhost:8080"
-      },
-      "authenticationRequestUrl": "/realms/test/protocol/openid-connect/auth",
+      "issuerUrl": "https://jenkins.cs.ox.ac.uk/auth",
+      "clientId": "mdm",
+      "clientSecret": "${json-unit.matches:id}",
+      "accessTokenEndpoint": "/realms/test/protocol/openid-connect/token",
+      "authenticationEndpoint": "/realms/test/protocol/openid-connect/auth",
       "authenticationRequestParameters": {
-        "client_id": "mdm",
-        "response_type": "code",
         "scope": "openid email",
-        "redirect_uri": "http://localhost:8080"
+        "responseType": "code"
       }
     },
     {
       "id": "${json-unit.matches:id}",
       "label": "Microsoft Openid-Connect Provider",
       "openidConnectProviderType": "MICROSOFT",
-      "baseUrl": "https://login.microsoftonline.com",
-      "accessTokenRequestUrl": "organizations/oauth2/v2.0/token",
-      "accessTokenRequestParameters": {
-        "client_id": "microsoftClientId",
-        "client_secret": "clientSecret",
-        "grant_type": "authorization_code",
-        "redirect_uri": "http://localhost:8080"
-      },
-      "authenticationRequestUrl": "organizations/oauth2/v2.0/authorize",
+      "issuerUrl": "https://login.microsoftonline.com",
+      "clientId": "microsoftClientId",
+      "clientSecret": "clientSecret",
+      "accessTokenEndpoint": "organizations/oauth2/v2.0/token",
+      "authenticationEndpoint": "organizations/oauth2/v2.0/authorize",
       "authenticationRequestParameters": {
-        "client_id": "microsoftClientId",
-        "response_type": "code",
         "scope": "openid email",
-        "redirect_uri": "http://localhost:8080"
+        "responseType": "code"
       }
     }
   ]
@@ -521,31 +450,78 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
 
     def 'check public endpoint'() {
         when: 'not logged in'
-        GET('openidConnectProviders', STRING_ARG, true)
+        HttpResponse<List<Map>> localResponse = GET('openidConnectProviders', Argument.listOf(Map), true)
 
         then:
-        verifyJsonResponse(OK, getPublicIndexJson())
-
+        verifyPublicResponse(localResponse)
 
         when: 'reader'
         loginReader()
-        GET('openidConnectProviders', STRING_ARG, true)
+        localResponse = GET('openidConnectProviders', Argument.listOf(Map), true)
 
         then:
-        verifyJsonResponse(OK, getPublicIndexJson())
+        verifyPublicResponse(localResponse)
 
         when: 'authenticated'
         loginAuthenticated()
-        GET('openidConnectProviders', STRING_ARG, true)
+        localResponse = GET('openidConnectProviders', Argument.listOf(Map), true)
 
         then:
-        verifyJsonResponse(OK, getPublicIndexJson())
+        verifyPublicResponse(localResponse)
 
         when: 'editor'
         loginEditor()
-        GET('openidConnectProviders', STRING_ARG, true)
+        localResponse = GET('openidConnectProviders', Argument.listOf(Map), true)
 
         then:
-        verifyJsonResponse(OK, getPublicIndexJson())
+        verifyPublicResponse(localResponse)
+    }
+
+    void verifyPublicResponse(HttpResponse<List<Map>> localResponse) {
+        verifyResponse(OK, localResponse)
+
+        Map<String, String> google = localResponse.body().find {it.label == BootstrapModels.GOOGLE_OPENID_CONNECT_PROVIDER_NAME}
+        Map<String, String> microsoft = localResponse.body().find {it.label == BootstrapModels.MICROSOFT_OPENID_CONNECT_PROVIDER_NAME}
+        Map<String, String> keycloak = localResponse.body().find {it.label == BootstrapModels.KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME}
+
+        assert google
+        assert microsoft
+        assert keycloak
+
+        assert google.id
+        assert google.openidConnectProviderType == 'GOOGLE'
+        String authenticationEndpoint = google.authenticationEndpoint
+
+        assert authenticationEndpoint
+        assert authenticationEndpoint.startsWith('http://google.com/o/oauth2/v2/auth?')
+        assert authenticationEndpoint.contains('response_type=code')
+        assert authenticationEndpoint.contains('client_id=894713962139-bcggqkmpj45gu5v58o5mc9qc89f3tk16.apps.googleusercontent.com')
+        assert authenticationEndpoint.contains('scope=openid+email')
+        assert authenticationEndpoint.find(/state=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
+        assert authenticationEndpoint.find(/nonce=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
+
+        assert microsoft.id
+        assert microsoft.openidConnectProviderType == 'MICROSOFT'
+        authenticationEndpoint = microsoft.authenticationEndpoint
+
+        assert authenticationEndpoint
+        assert authenticationEndpoint.startsWith('https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?')
+        assert authenticationEndpoint.contains('response_type=code')
+        assert authenticationEndpoint.contains('client_id=microsoftClientId')
+        assert authenticationEndpoint.contains('scope=openid+email')
+        assert authenticationEndpoint.find(/state=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
+        assert authenticationEndpoint.find(/nonce=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
+
+        assert keycloak.id
+        assert keycloak.openidConnectProviderType == 'KEYCLOAK'
+        authenticationEndpoint = keycloak.authenticationEndpoint
+
+        assert authenticationEndpoint
+        assert authenticationEndpoint.startsWith('https://jenkins.cs.ox.ac.uk/auth/realms/test/protocol/openid-connect/auth?')
+        assert authenticationEndpoint.contains('response_type=code')
+        assert authenticationEndpoint.contains('client_id=mdm')
+        assert authenticationEndpoint.contains('scope=openid+email')
+        assert authenticationEndpoint.find(/state=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
+        assert authenticationEndpoint.find(/nonce=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
     }
 }

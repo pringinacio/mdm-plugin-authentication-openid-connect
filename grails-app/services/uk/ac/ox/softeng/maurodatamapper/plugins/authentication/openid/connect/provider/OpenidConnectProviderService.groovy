@@ -15,34 +15,41 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
+package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider
+
+import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 
 import grails.gorm.transactions.Transactional
+import io.micronaut.core.type.Argument
+import io.micronaut.http.HttpRequest
+import io.micronaut.http.client.HttpClient
+import io.micronaut.http.client.exceptions.HttpClientResponseException
 
 @Transactional
 class OpenidConnectProviderService {
 
-    OpenidConnectProvider get(Serializable id){
+    OpenidConnectProvider get(Serializable id) {
         OpenidConnectProvider.get(id)
     }
 
-    int count(){
+    int count() {
         OpenidConnectProvider.count()
     }
 
-    List<OpenidConnectProvider> list(Map pagination){
+    List<OpenidConnectProvider> list(Map pagination) {
         OpenidConnectProvider.by().list(pagination)
     }
 
-    void save(OpenidConnectProvider openidConnectProvider){
+    void save(OpenidConnectProvider openidConnectProvider) {
         openidConnectProvider.save(failOnError: true, validate: false)
     }
 
-    void delete(OpenidConnectProvider openidConnectProvider){
+    void delete(OpenidConnectProvider openidConnectProvider) {
         openidConnectProvider.delete(flush: true)
     }
 
-    OpenidConnectProvider findByLabel(String label){
+    OpenidConnectProvider findByLabel(String label) {
         OpenidConnectProvider.findByLabel(label)
     }
 }

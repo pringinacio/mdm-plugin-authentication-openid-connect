@@ -1,22 +1,20 @@
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProvider
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 
-model{
+model {
     OpenidConnectProvider openidConnectProvider
-    Boolean openAccess
 }
 
-json{
+json {
     id openidConnectProvider.id
     label openidConnectProvider.label
     openidConnectProviderType openidConnectProvider.openidConnectProviderType.toString()
-    baseUrl openidConnectProvider.baseUrl
+    baseUrl openidConnectProvider.issuerUrl
+    clientId openidConnectProvider.clientId
+    clientSecret openidConnectProvider.clientSecret
 
-    accessTokenRequestUrl openidConnectProvider.accessTokenRequestUrl
-    accessTokenRequestParameters openidConnectProvider.accessTokenRequestParameters
+    accessTokenRequestPath openidConnectProvider.accessTokenEndpoint
 
-    if(!openAccess) {
-        authenticationRequestUrl openidConnectProvider.authenticationRequestUrl
-        authenticationRequestParameters openidConnectProvider.authenticationRequestParameters
-    }
+    authenticationRequestPath openidConnectProvider.authenticationEndpoint
+    authenticationRequestParameters g.render(openidConnectProvider.authenticationRequestParameters)
 }
 
