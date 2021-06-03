@@ -21,7 +21,7 @@ import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.CallableConstra
 import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.CreatorAwareConstraints
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProviderType
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.details.DiscoveryDocument
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.parameters.AuthenticationRequestParameters
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.parameters.AuthorizationEndpointParameters
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.CreatorAware
 
 import grails.gorm.DetachedCriteria
@@ -40,23 +40,24 @@ class OpenidConnectProvider implements CreatorAware {
     String clientId
     String clientSecret
 
-    AuthenticationRequestParameters authenticationRequestParameters
+    AuthorizationEndpointParameters authorizationEndpointParameters
     DiscoveryDocument discoveryDocument
 
     static constraints = {
         CallableConstraints.call(CreatorAwareConstraints, delegate)
         label unique: true, blank: false
-        discoveryDocumentUrl blank: false, url: true, nullable: true
+        discoveryDocumentUrl blank: false, url: true, nullable: true, validator: {val,obj ->
+            if(obj.openidConnectProviderType == OpenidConnectProviderType.STANDARD && !val) return ['default.null.message']
+        }
         clientId blank: false
         clientSecret blank: false
-        discoveryDocument nullable: true
     }
 
     static mapping = {
     }
 
     OpenidConnectProvider() {
-        authenticationRequestParameters = new AuthenticationRequestParameters()
+        authorizationEndpointParameters = new AuthorizationEndpointParameters()
     }
 
     @Override
@@ -65,8 +66,8 @@ class OpenidConnectProvider implements CreatorAware {
     }
 
     def beforeValidate() {
-        authenticationRequestParameters?.openidConnectProvider = this
-        authenticationRequestParameters?.createdBy = this.createdBy
+        authorizationEndpointParameters?.openidConnectProvider = this
+        authorizationEndpointParameters?.createdBy = this.createdBy
         discoveryDocument?.openidConnectProvider = this
         discoveryDocument?.createdBy = this.createdBy
     }
@@ -78,9 +79,9 @@ class OpenidConnectProvider implements CreatorAware {
          code         : code]
     }
 
-    String getFullAuthenticationEndpointUrl() {
+    String getFullAuthorizationEndpointUrl() {
         UriBuilder builder = UriBuilder.of(discoveryDocument.authorizationEndpoint)
-        authenticationRequestParameters.getAsMap().each {k, v ->
+        authorizationEndpointParameters.getAsMap().each {k, v ->
             builder = builder.queryParam(k, v)
         }
         builder.build().toString()

@@ -21,7 +21,7 @@ class DiscoveryDocument implements CreatorAware{
         issuer blank: false, url: true
         authorizationEndpoint blank: false, url: true
         tokenEndpoint blank: false, url: true
-        userinfoEndpoint blank: false, url: true
+        userinfoEndpoint blank: false, url: true, nullable: true
         endSessionEndpoint blank: false, url: true, nullable: true
         jwksUri blank: false, url: true
     }

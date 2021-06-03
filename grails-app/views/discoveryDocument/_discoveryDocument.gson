@@ -1,0 +1,15 @@
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.details.DiscoveryDocument
+
+model {
+    DiscoveryDocument discoveryDocument
+}
+json {
+    id discoveryDocument.id
+    lastUpdated discoveryDocument.lastUpdated
+    issuer discoveryDocument.issuer
+    authorizationEndpoint discoveryDocument.authorizationEndpoint
+    tokenEndpoint discoveryDocument.tokenEndpoint
+    userinfoEndpoint discoveryDocument.userinfoEndpoint
+    endSessionEndpoint discoveryDocument.endSessionEndpoint
+    jwksUri discoveryDocument.jwksUri
+}

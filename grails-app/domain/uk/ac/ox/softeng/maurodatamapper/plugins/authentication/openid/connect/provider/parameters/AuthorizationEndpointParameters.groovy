@@ -11,7 +11,7 @@ import uk.ac.ox.softeng.maurodatamapper.traits.domain.CreatorAware
 /**
  * See <a href=https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint>OpenId Connect Specification</a>
  */
-class AuthenticationRequestParameters implements CreatorAware {
+class AuthorizationEndpointParameters implements CreatorAware {
 
     UUID id
     // Space separated list
@@ -54,14 +54,14 @@ class AuthenticationRequestParameters implements CreatorAware {
 
     static belongsTo = [openidConnectProvider: OpenidConnectProvider]
 
-    AuthenticationRequestParameters() {
+    AuthorizationEndpointParameters() {
         scope = 'openid email'
         responseType = 'code'
     }
 
     @Override
     String getDomainType() {
-        AuthenticationRequestParameters.simpleName
+        AuthorizationEndpointParameters.simpleName
     }
 
     String getClientId() {

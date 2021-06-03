@@ -8,6 +8,6 @@ json{
     id openidConnectProvider.id
     label openidConnectProvider.label
     openidConnectProviderType openidConnectProvider.openidConnectProviderType.toString()
-    authenticationRequestUrl openidConnectProvider.getFullAuthenticationEndpointUrl()
+    authorizationEndpoint openidConnectProvider.getFullAuthorizationEndpointUrl()
 }
 

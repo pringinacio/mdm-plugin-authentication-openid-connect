@@ -2,7 +2,6 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.p
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProviderService
 
 import grails.gorm.transactions.Transactional
 import io.micronaut.core.type.Argument

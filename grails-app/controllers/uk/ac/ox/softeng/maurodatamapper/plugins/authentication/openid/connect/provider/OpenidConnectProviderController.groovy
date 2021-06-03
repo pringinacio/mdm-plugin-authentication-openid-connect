@@ -18,9 +18,8 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider
 
 import uk.ac.ox.softeng.maurodatamapper.core.controller.EditLoggingController
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProviderService
 
+import grails.gorm.transactions.Transactional
 import grails.web.servlet.mvc.GrailsParameterMap
 
 class OpenidConnectProviderController extends EditLoggingController<OpenidConnectProvider> {
@@ -40,7 +39,34 @@ class OpenidConnectProviderController extends EditLoggingController<OpenidConnec
         // Therefore if thats written then we dont want to try and re-write it
         if (response.isCommitted() || modelAndView) return
         respond res, [
-            view : (params as GrailsParameterMap).boolean('openAccess') ? 'publicIndex': 'index']
+            view: (params as GrailsParameterMap).boolean('openAccess') ? 'publicIndex' : 'index']
+    }
+
+    @Transactional
+    @Override
+    def update() {
+        if (handleReadOnly()) return
+
+        OpenidConnectProvider instance = queryForResource(params.id)
+
+        if (instance == null) {
+            transactionStatus.setRollbackOnly()
+            notFound(params.id)
+            return
+        }
+
+        instance.properties = getObjectToBind()
+
+        // If the DD has changed then load it in
+        if (instance.discoveryDocumentUrl && instance.isDirty('discoveryDocumentUrl')) {
+            instance = openidConnectProviderService.loadDiscoveryDocumentIntoOpenidConnectProvider(instance)
+        }
+
+        if (!validateResource(instance, 'update')) return
+
+        updateResource instance
+
+        updateResponse instance
     }
 
     @Override
@@ -52,5 +78,14 @@ class OpenidConnectProviderController extends EditLoggingController<OpenidConnec
     protected List<OpenidConnectProvider> listAllReadableResources(Map params) {
         params.sort = params.sort ?: 'label'
         openidConnectProviderService.list(params)
+    }
+
+    @Override
+    protected OpenidConnectProvider createResource(Map includesExcludes = Collections.EMPTY_MAP) {
+        OpenidConnectProvider openidConnectProvider = super.createResource(includesExcludes)
+        if (openidConnectProvider.discoveryDocumentUrl) {
+            openidConnectProvider = openidConnectProviderService.loadDiscoveryDocumentIntoOpenidConnectProvider(openidConnectProvider)
+        }
+        openidConnectProvider
     }
 }

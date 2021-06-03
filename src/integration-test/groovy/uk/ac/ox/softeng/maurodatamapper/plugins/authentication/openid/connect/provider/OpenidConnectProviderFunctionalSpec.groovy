@@ -15,8 +15,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
+package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider
 
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProviderType
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.test.FunctionalSpec
 
@@ -46,45 +47,55 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
 
     Map getValidJson() {
         [label                    : 'Functional Test Provider 4',
-         openidConnectProviderType: OpenidConnectProviderType.OTHER,
-         issuerUrl                : "http://test.com",
-         authenticationEndpoint   : "o/oauth2/v2/auth",
-         accessTokenEndpoint      : "o/oauth2/v2/auth",
-         certificateEndpoint      : "o/oauth2/v2/auth",
+         openidConnectProviderType: OpenidConnectProviderType.NON_STANDARD,
          clientId                 : 'testing',
-         clientSecret             : 'c2e94d1c'
+         clientSecret             : 'c2e94d1c',
+         discoveryDocument        : [
+             issuer               : "http://test.com",
+             authorizationEndpoint: "http://test.com/o/oauth2/v2/auth",
+             tokenEndpoint        : "http://test.com/o/oauth2/v2/auth",
+             jwksUri              : "http://test.com/o/oauth2/v2/auth",
+         ]
         ]
     }
 
     Map getInvalidJson() {
         [label                    : 'Functional Test Provider 4',
-         openidConnectProviderType: OpenidConnectProviderType.OTHER,
-         issuerUrl                  : "",
-         accessTokenEndpoint      : "",
-         authenticationEndpoint   : ""
+         openidConnectProviderType: OpenidConnectProviderType.STANDARD,
         ]
     }
 
     Map getValidUpdateJson() {
-        [accessTokenEndpoint: "o/oauth2/v2/accessToken",
-         clientId           : 'testing',
-
+        [clientId         : 'integrationTesting',
+         discoveryDocument: [
+             userinfoEndpoint: "http://test.com/userinfo",
+         ]
         ]
     }
 
     String getShowJson() {
         '''{
   "id": "${json-unit.matches:id}",
+  "lastUpdated": "${json-unit.matches:offsetDateTime}",
   "label": "Functional Test Provider 4",
-  "openidConnectProviderType": "OTHER",
-  "issuerUrl": "http://test.com",
+  "openidConnectProviderType": "NON_STANDARD",
   "clientId": "testing",
   "clientSecret": "c2e94d1c",
-  "accessTokenEndpoint": "o/oauth2/v2/auth",
-  "authenticationEndpoint": "o/oauth2/v2/auth",
-  "authenticationRequestParameters": {
+  "authorizationEndpointParameters": {
+    "id": "${json-unit.matches:id}",
+    "lastUpdated": "${json-unit.matches:offsetDateTime}",
     "scope": "openid email",
     "responseType": "code"
+  },
+  "discoveryDocument": {
+    "id": "${json-unit.matches:id}",
+    "lastUpdated": "${json-unit.matches:offsetDateTime}",
+    "issuer": "http://test.com",
+    "authorizationEndpoint": "http://test.com/o/oauth2/v2/auth",
+    "tokenEndpoint": "http://test.com/o/oauth2/v2/auth",
+    "userinfoEndpoint": null,
+    "endSessionEndpoint": null,
+    "jwksUri": "http://test.com/o/oauth2/v2/auth"
   }
 }'''
     }
@@ -95,45 +106,21 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
   "items": [
     {
       "id": "${json-unit.matches:id}",
+      "lastUpdated": "${json-unit.matches:offsetDateTime}",
       "label": "Google Openid-Connect Provider",
-      "openidConnectProviderType": "GOOGLE",
-      "issuerUrl": "http://google.com",
-      "clientId": "894713962139-bcggqkmpj45gu5v58o5mc9qc89f3tk16.apps.googleusercontent.com",
-      "clientSecret": "Qa3PycVansOZ5ivwx-Dx8PHT",
-      "accessTokenEndpoint": "https://oauth2.googleapis.com/token",
-      "authenticationEndpoint": "o/oauth2/v2/auth",
-      "authenticationRequestParameters": {
-        "scope": "openid email",
-        "responseType": "code"
-      }
+      "openidConnectProviderType": "STANDARD"
     },
     {
       "id": "${json-unit.matches:id}",
+      "lastUpdated": "${json-unit.matches:offsetDateTime}",
       "label": "Keycloak Openid-Connect Provider",
-      "openidConnectProviderType": "KEYCLOAK",
-      "issuerUrl": "https://jenkins.cs.ox.ac.uk/auth",
-      "clientId": "mdm",
-      "clientSecret": "${json-unit.matches:id}",
-      "accessTokenEndpoint": "/realms/test/protocol/openid-connect/token",
-      "authenticationEndpoint": "/realms/test/protocol/openid-connect/auth",
-      "authenticationRequestParameters": {
-        "scope": "openid email",
-        "responseType": "code"
-      }
+      "openidConnectProviderType": "STANDARD"
     },
     {
       "id": "${json-unit.matches:id}",
+      "lastUpdated": "${json-unit.matches:offsetDateTime}",
       "label": "Microsoft Openid-Connect Provider",
-      "openidConnectProviderType": "MICROSOFT",
-      "issuerUrl": "https://login.microsoftonline.com",
-      "clientId": "microsoftClientId",
-      "clientSecret": "clientSecret",
-      "accessTokenEndpoint": "organizations/oauth2/v2.0/token",
-      "authenticationEndpoint": "organizations/oauth2/v2.0/authorize",
-      "authenticationRequestParameters": {
-        "scope": "openid email",
-        "responseType": "code"
-      }
+      "openidConnectProviderType": "STANDARD"
     }
   ]
 }'''
@@ -489,39 +476,39 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
         assert keycloak
 
         assert google.id
-        assert google.openidConnectProviderType == 'GOOGLE'
-        String authenticationEndpoint = google.authenticationEndpoint
-
-        assert authenticationEndpoint
-        assert authenticationEndpoint.startsWith('http://google.com/o/oauth2/v2/auth?')
-        assert authenticationEndpoint.contains('response_type=code')
-        assert authenticationEndpoint.contains('client_id=894713962139-bcggqkmpj45gu5v58o5mc9qc89f3tk16.apps.googleusercontent.com')
-        assert authenticationEndpoint.contains('scope=openid+email')
-        assert authenticationEndpoint.find(/state=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
-        assert authenticationEndpoint.find(/nonce=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
+        assert google.openidConnectProviderType == 'STANDARD'
+        String authorizationEndpoint = google.authorizationEndpoint
+        log.info('Google: {}', authorizationEndpoint)
+        assert authorizationEndpoint
+        assert authorizationEndpoint.startsWith('https://accounts.google.com/o/oauth2/v2/auth?')
+        assert authorizationEndpoint.contains('response_type=code')
+        assert authorizationEndpoint.contains('client_id=894713962139-bcggqkmpj45gu5v58o5mc9qc89f3tk16.apps.googleusercontent.com')
+        assert authorizationEndpoint.contains('scope=openid+email')
+        assert authorizationEndpoint.find(/state=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
+        assert authorizationEndpoint.find(/nonce=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
 
         assert microsoft.id
-        assert microsoft.openidConnectProviderType == 'MICROSOFT'
-        authenticationEndpoint = microsoft.authenticationEndpoint
-
-        assert authenticationEndpoint
-        assert authenticationEndpoint.startsWith('https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?')
-        assert authenticationEndpoint.contains('response_type=code')
-        assert authenticationEndpoint.contains('client_id=microsoftClientId')
-        assert authenticationEndpoint.contains('scope=openid+email')
-        assert authenticationEndpoint.find(/state=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
-        assert authenticationEndpoint.find(/nonce=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
+        assert microsoft.openidConnectProviderType == 'STANDARD'
+        authorizationEndpoint = microsoft.authorizationEndpoint
+        log.info('Microsoft: {}', authorizationEndpoint)
+        assert authorizationEndpoint
+        assert authorizationEndpoint.startsWith('https://login.microsoftonline.com/common/oauth2/authorize?')
+        assert authorizationEndpoint.contains('response_type=code')
+        assert authorizationEndpoint.contains('client_id=microsoftClientId')
+        assert authorizationEndpoint.contains('scope=openid+email')
+        assert authorizationEndpoint.find(/state=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
+        assert authorizationEndpoint.find(/nonce=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
 
         assert keycloak.id
-        assert keycloak.openidConnectProviderType == 'KEYCLOAK'
-        authenticationEndpoint = keycloak.authenticationEndpoint
-
-        assert authenticationEndpoint
-        assert authenticationEndpoint.startsWith('https://jenkins.cs.ox.ac.uk/auth/realms/test/protocol/openid-connect/auth?')
-        assert authenticationEndpoint.contains('response_type=code')
-        assert authenticationEndpoint.contains('client_id=mdm')
-        assert authenticationEndpoint.contains('scope=openid+email')
-        assert authenticationEndpoint.find(/state=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
-        assert authenticationEndpoint.find(/nonce=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
+        assert keycloak.openidConnectProviderType == 'STANDARD'
+        authorizationEndpoint = keycloak.authorizationEndpoint
+        log.info('Keycloak: {}', authorizationEndpoint)
+        assert authorizationEndpoint
+        assert authorizationEndpoint.startsWith('https://jenkins.cs.ox.ac.uk/auth/realms/test/protocol/openid-connect/auth?')
+        assert authorizationEndpoint.contains('response_type=code')
+        assert authorizationEndpoint.contains('client_id=mdm')
+        assert authorizationEndpoint.contains('scope=openid+email')
+        assert authorizationEndpoint.find(/state=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
+        assert authorizationEndpoint.find(/nonce=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
     }
 }

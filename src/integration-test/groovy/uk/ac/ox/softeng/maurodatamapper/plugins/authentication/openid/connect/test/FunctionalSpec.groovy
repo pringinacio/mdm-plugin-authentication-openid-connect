@@ -127,7 +127,8 @@ abstract class FunctionalSpec extends BaseFunctionalSpec implements SecurityDefi
     HttpResponse<Map> loginUser(String emailAddress, String userPassword) {
         logout()
         log.trace('Logging in as {}', emailAddress)
-        POST('authentication/login', [
+        // Only log in using basic scheme here so we dont try to use the openid connect version
+        POST('authentication/login?scheme=basic', [
             username: emailAddress,
             password: userPassword
         ], MAP_ARG, true)

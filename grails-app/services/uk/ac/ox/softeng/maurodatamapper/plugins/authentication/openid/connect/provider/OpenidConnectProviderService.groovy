@@ -17,17 +17,15 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider
 
-import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInternalException
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.details.DiscoveryDocument
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.details.DiscoveryDocumentService
 
 import grails.gorm.transactions.Transactional
-import io.micronaut.core.type.Argument
-import io.micronaut.http.HttpRequest
-import io.micronaut.http.client.HttpClient
-import io.micronaut.http.client.exceptions.HttpClientResponseException
 
 @Transactional
 class OpenidConnectProviderService {
+
+    DiscoveryDocumentService discoveryDocumentService
 
     OpenidConnectProvider get(Serializable id) {
         OpenidConnectProvider.get(id)
@@ -51,5 +49,11 @@ class OpenidConnectProviderService {
 
     OpenidConnectProvider findByLabel(String label) {
         OpenidConnectProvider.findByLabel(label)
+    }
+
+    OpenidConnectProvider loadDiscoveryDocumentIntoOpenidConnectProvider(OpenidConnectProvider openidConnectProvider){
+        DiscoveryDocument discoveryDocument = discoveryDocumentService.loadDiscoveryDocumentForOpenidConnectProvider(openidConnectProvider)
+        openidConnectProvider.discoveryDocument = discoveryDocument
+        openidConnectProvider
     }
 }

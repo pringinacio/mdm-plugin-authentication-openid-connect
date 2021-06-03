@@ -42,7 +42,7 @@ class BootstrapModels {
         OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
             label: GOOGLE_OPENID_CONNECT_PROVIDER_NAME,
             createdBy: StandardEmailAddress.ADMIN,
-            openidConnectProviderType: OpenidConnectProviderType.GOOGLE,
+            openidConnectProviderType: OpenidConnectProviderType.STANDARD,
             discoveryDocumentUrl: "https://accounts.google.com/.well-known/openid-configuration",
             clientId: openidConnectConfig.clientId,
             clientSecret: openidConnectConfig.clientSecret,
@@ -57,13 +57,12 @@ class BootstrapModels {
         OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
             label: MICROSOFT_OPENID_CONNECT_PROVIDER_NAME,
             createdBy: StandardEmailAddress.ADMIN,
-            openidConnectProviderType: OpenidConnectProviderType.MICROSOFT,
+            openidConnectProviderType: OpenidConnectProviderType.STANDARD,
             discoveryDocumentUrl: 'https://login.microsoftonline.com/common/.well-known/openid-configuration',
             clientId: openidConnectConfig.clientId,
             clientSecret: openidConnectConfig.clientSecret,
             )
         openidConnectProvider.discoveryDocument = discoveryDocumentService.loadDiscoveryDocumentForOpenidConnectProvider(openidConnectProvider)
-
         openidConnectProvider.discoveryDocument.issuer = openidConnectProvider.discoveryDocument.issuer.replace('{tenantid}', openidConnectConfig.clientId)
 
         checkAndSave(messageSource, openidConnectProvider)
@@ -75,7 +74,7 @@ class BootstrapModels {
         OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
             label: KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME,
             createdBy: StandardEmailAddress.ADMIN,
-            openidConnectProviderType: OpenidConnectProviderType.KEYCLOAK,
+            openidConnectProviderType: OpenidConnectProviderType.STANDARD,
             discoveryDocumentUrl: "${openidConnectConfig.baseUrl}/realms/${openidConnectConfig.realm}/.well-known/openid-configuration",
             clientId: openidConnectConfig.clientId,
             clientSecret: openidConnectConfig.clientSecret,

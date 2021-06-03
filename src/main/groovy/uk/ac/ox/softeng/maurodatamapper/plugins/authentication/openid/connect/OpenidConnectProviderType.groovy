@@ -18,10 +18,9 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
 enum OpenidConnectProviderType {
-    KEYCLOAK('KeyCloak'),
-    GOOGLE('Google'),
-    MICROSOFT('Microsoft'),
-    OTHER('Other')
+
+    STANDARD('Standard'),
+    NON_STANDARD('Non-Standard')
 
     String label
 
@@ -30,7 +29,7 @@ enum OpenidConnectProviderType {
     }
 
     static OpenidConnectProviderType findForLabel(String label) {
-        String convert = label?.toUpperCase()?.replaceAll(/ /, '_')
+        String convert = label?.toUpperCase()?.replaceAll(/ -/, '_')
         try {
             return valueOf(convert)
         } catch (Exception ignored) {}
