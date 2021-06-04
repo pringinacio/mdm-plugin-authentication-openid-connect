@@ -17,7 +17,6 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
-
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUserService
@@ -27,6 +26,10 @@ import grails.gorm.transactions.Transactional
 import grails.testing.mixin.integration.Integration
 import grails.testing.spock.OnceBefore
 import groovy.util.logging.Slf4j
+import org.jsoup.Connection
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.nodes.FormElement
 import spock.lang.Ignore
 import spock.lang.PendingFeature
 import spock.lang.Stepwise
@@ -64,7 +67,9 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
     @Transactional
     OpenidConnectProvider getKeycloakProvider() {
-        OpenidConnectProvider.findByLabel(BootstrapModels.KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME)
+        OpenidConnectProvider provider = OpenidConnectProvider.findByLabel(BootstrapModels.KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME)
+        provider.getFullAuthorizationEndpointUrl()
+        provider
     }
 
     @Transactional
@@ -92,62 +97,89 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         log.info('{}', jsonCapableResponse.body())
     }
 
-    Map<String, String> getResponseBody(String providerId, String code) {
-        getResponseBody(providerId, code, UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString())
-    }
-
-    Map<String, String> getResponseBody(String providerId, String code, String sessionState, String nonce, String state) {
-        [
-            openidConnectProviderId: providerId,
-            code                   : code,
-            session_state          : sessionState,
-            state                  : state,
-            redirect_uri           : 'https://jenkins.cs.ox.ac.uk',
-            nonce                  : nonce
-        ]
-    }
-
     void 'KEYCLOAK01 - test logging in with empty authentication code'() {
+        given:
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak(keycloakProvider)
+        authorizeResponse.code = ''
 
         when: 'in call made to login'
-        POST('login?scheme=openIdConnect', getResponseBody(keycloakProvider.id.toString(), ''))
+        POST('login?scheme=openIdConnect', authorizeResponse)
 
         then:
         verifyResponse(UNAUTHORIZED, response)
     }
 
     void 'KEYCLOAK02 - test logging in with random authentication code'() {
+        given:
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak(keycloakProvider)
+        authorizeResponse.code = UUID.randomUUID().toString()
 
         when: 'in call made to login'
-        POST('login?scheme=openIdConnect', getResponseBody(keycloakProvider.id.toString(), UUID.randomUUID().toString()))
+        POST('login?scheme=openIdConnect', authorizeResponse)
 
         then:
         verifyResponse(UNAUTHORIZED, response)
     }
 
     void 'KEYCLOAK03 - test logging in with no authentication code'() {
+        given:
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak(keycloakProvider)
+        authorizeResponse.remove('code')
+
+
         when: 'in call made to login'
-        POST('login?scheme=openIdConnect', getResponseBody(keycloakProvider.id.toString(), null))
+        POST('login?scheme=openIdConnect', authorizeResponse)
 
         then:
         verifyResponse(UNAUTHORIZED, response)
     }
 
-    void 'KEYCLOAK04 - test logging in with  authentication code'() {
-        //https://jenkins.cs.ox.ac.uk/auth/realms/test/protocol/openid-connect/auth?scope=openid+email&response_type=code&state=1c6771be-7a08-423a-8dba-8bc82f833775&nonce
-        // =d7d17854-a8d6-404d-9d14-79f65500ec57&client_id=mdm&redirect_uri=https://jenkins.cs.ox.ac.uk/
-        //https://jenkins.cs.ox.ac.uk/?state=1c6771be-7a08-423a-8dba-8bc82f833775&session_state=9d1abb89-2226-4cf0-8077-becc084685b6&code=289a89c2-6072-4d0c-9314
-        // -35bd50483b3c.9d1abb89-2226-4cf0-8077-becc084685b6.39967b99-96d6-4dac-89b9-95a9c2770edb
+    void 'KEYCLOAK04 - test logging in with valid authentication code and invalid session_state'() {
+        given:
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak(keycloakProvider)
+        authorizeResponse.session_state = UUID.randomUUID().toString()
+
         when: 'in call made to login'
-        POST('login?scheme=openIdConnect', getResponseBody(keycloakProvider.id.toString(),
-                                                           'd239784b-0ad2-49a2-be91-94f64fd232ce.6b1d3d01-eb2a-43d2-812b-1a2902072f96.39967b99-96d6-4dac-89b9-95a9c2770edb',
-                                                           '6b1d3d01-eb2a-43d2-812b-1a2902072f96',
-                                                           'd7d17854-a8d6-404d-9d14-79f65500ec57',
-                                                           '1c6771be-7a08-423a-8dba-8bc82f833775'))
+        POST('login?scheme=openIdConnect', authorizeResponse)
+
+        then:
+        verifyResponse(UNAUTHORIZED, response)
+    }
+
+    void 'KEYCLOAK05 - test logging in with valid authentication code and invalid nonce'() {
+        given:
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak(keycloakProvider)
+        authorizeResponse.nonce = UUID.randomUUID().toString()
+
+        when: 'in call made to login'
+        POST('login?scheme=openIdConnect', authorizeResponse)
+
+        then:
+        verifyResponse(UNAUTHORIZED, response)
+    }
+
+    void 'KEYCLOAK06 - test logging in with valid authentication code and parameters with existing user'() {
+        given:
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak(keycloakProvider)
+
+        when: 'in call made to login'
+        POST('login?scheme=openIdConnect', authorizeResponse)
 
         then:
         verifyResponse(OK, response)
     }
+
+    void 'KEYCLOAK07 - test logging in with valid authentication code and parameters with non-existent user'() {
+        given:
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak(keycloakProvider, 'keycloak-only','keycloak-only')
+
+        when: 'in call made to login'
+        POST('login?scheme=openIdConnect', authorizeResponse)
+
+        then:
+        verifyResponse(OK, response)
+    }
+
 
     @PendingFeature
     void 'GOOGLE01 - test logging in with empty authentication code'() {
@@ -215,4 +247,53 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
       }
     ]
      */
+
+
+    Map<String, String> authoriseAgainstKeyCloak(OpenidConnectProvider provider, String username = 'mdm-admin', String password = 'mdm-admin') {
+
+        // Connect and then request the authorise page from KC
+        String authoriseEndpoint = "${provider.getFullAuthorizationEndpointUrl()}&redirect_uri=https://jenkins.cs.ox.ac.uk"
+        Connection authoriseConnection = Jsoup.connect(authoriseEndpoint)
+        Document doc = authoriseConnection.get()
+
+        // Get the login form and complete it
+        FormElement form = doc.getElementById('kc-form-login') as FormElement
+        form.getElementById('username').val(username)
+        form.getElementById('password').val(password)
+
+        // Setup connection to submit form for authentication
+        // We MUST submit the cookies from the authorise request along with the authenticate
+        Connection connection = form.submit()
+            .header('accept', '*/*')
+            .cookies(authoriseConnection.response().cookies())
+
+        // Execute and get the response
+        // The response "url" will hold all the params we need to pass for token request
+        Connection.Response response = connection.execute()
+
+        // Get all the parameters we sent to authorise
+        Map<String,String> authorizeParameters = authoriseEndpoint.toURL().query.split('&').collectEntries {it.split('=')}
+        // Get all the paraemeters we got back from authenticate
+        Map<String,String> authenticateParameters = response.url().query.split('&').collectEntries {it.split('=')}
+
+        // Add them together choosing the authenticate as the preferred value (shouldnt be any difference)
+        authorizeParameters.putAll(authenticateParameters)
+        authorizeParameters.openidConnectProviderId = keycloakProvider.id.toString()
+        authorizeParameters
+    }
+
+    Map<String, String> getResponseBody(String providerId, String code) {
+        getResponseBody(providerId, code, UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString())
+    }
+
+    Map<String, String> getResponseBody(String providerId, String code, String sessionState, String nonce, String state) {
+        [
+            openidConnectProviderId: providerId,
+            code                   : code,
+            session_state          : sessionState,
+            state                  : state,
+            redirect_uri           : 'https://jenkins.cs.ox.ac.uk',
+            nonce                  : nonce
+        ]
+    }
 }
