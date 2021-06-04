@@ -46,8 +46,8 @@ class OpenidConnectProvider implements CreatorAware {
     static constraints = {
         CallableConstraints.call(CreatorAwareConstraints, delegate)
         label unique: true, blank: false
-        discoveryDocumentUrl blank: false, url: true, nullable: true, validator: {val,obj ->
-            if(obj.openidConnectProviderType == OpenidConnectProviderType.STANDARD && !val) return ['default.null.message']
+        discoveryDocumentUrl blank: false, url: true, nullable: true, validator: {val, obj ->
+            if (obj.openidConnectProviderType == OpenidConnectProviderType.STANDARD && !val) return ['default.null.message']
         }
         clientId blank: false
         clientSecret blank: false
@@ -72,11 +72,15 @@ class OpenidConnectProvider implements CreatorAware {
         discoveryDocument?.createdBy = this.createdBy
     }
 
-    Map<String, Object> getAccessTokenRequestParameters(String code) {
-        [grant_type   : 'authorization_code',
-         client_id    : clientId,
-         client_secret: clientSecret,
-         code         : code]
+    Map<String, String> getAccessTokenRequestParameters(String code, String redirectUri, String sessionState) {
+        [
+            grant_type   : 'authorization_code',
+            client_id    : clientId,
+            code         : code,
+            redirect_uri : redirectUri,
+            client_secret: clientSecret,
+            session_state: sessionState
+        ]
     }
 
     String getFullAuthorizationEndpointUrl() {

@@ -2,8 +2,8 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.j
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.rest.transport.OpenidConnectAuthenticationDetails
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.rest.transport.token.OpenidConnectTokenDetails
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.rest.transport.AuthorizationResponseParameters
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.rest.transport.TokenResponseBody
 
 import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkProvider
@@ -18,7 +18,6 @@ import com.auth0.jwt.interfaces.Verification
 
 import java.security.interfaces.ECPublicKey
 import java.security.interfaces.RSAPublicKey
-
 /**
  * https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
  * @since 02/06/2021
@@ -34,14 +33,14 @@ class OpenidConnectIdTokenJwtVerifier {
     final OpenidConnectProvider openidConnectProvider
     final Long maxAgeOfAuthentication
 
-    OpenidConnectIdTokenJwtVerifier(OpenidConnectProvider openidConnectProvider, OpenidConnectTokenDetails tokenDetails,
-                                    OpenidConnectAuthenticationDetails authenticationDetails) {
+    OpenidConnectIdTokenJwtVerifier(OpenidConnectProvider openidConnectProvider, TokenResponseBody tokenDetails,
+                                    AuthorizationResponseParameters authenticationDetails) {
         this.decodedIdToken = tokenDetails.decodedIdToken
         this.providerLabel = openidConnectProvider.label
         this.openidConnectProvider = openidConnectProvider
         this.tokenSessionState = tokenDetails.sessionState
         this.authenticationSessionState = authenticationDetails.sessionState
-        this.maxAgeOfAuthentication = openidConnectProvider.authenticationRequestParameters.maxAge
+        this.maxAgeOfAuthentication = openidConnectProvider.authorizationEndpointParameters.maxAge
 
         JwkProvider provider = new UrlJwkProvider(openidConnectProvider.discoveryDocument.jwksUri.toURL())
         Jwk jsonWebKey = provider.get(decodedIdToken.keyId)
@@ -74,11 +73,13 @@ class OpenidConnectIdTokenJwtVerifier {
         // 12 (acr) out of scope
 
         // 13
-        Claim authTime = decodedIdToken.getClaim('auth_time')
-        Date now = new Date()
-        now.setTime((now.getTime() / 1000 * 1000) as long); // truncate millis
-        Date agedDate = new Date(authTime.asDate().getTime() + maxAgeOfAuthentication * 1000)
-        if (now.after(agedDate)) throw new JWTVerificationException("Authentication code can't be used after ${agedDate}")
+        if(maxAgeOfAuthentication) {
+            Claim authTime = decodedIdToken.getClaim('auth_time')
+            Date now = new Date()
+            now.setTime((now.getTime() / 1000 * 1000) as long); // truncate millis
+            Date agedDate = new Date(authTime.asDate().getTime() + maxAgeOfAuthentication * 1000)
+            if (now.after(agedDate)) throw new JWTVerificationException("Authentication code can't be used after ${agedDate}")
+        }
 
         // Addtl
         if (tokenSessionState != authenticationSessionState) throw new JWTVerificationException('Token session_state must match authentication session_state')

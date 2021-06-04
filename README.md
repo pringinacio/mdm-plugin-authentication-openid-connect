@@ -69,7 +69,7 @@ Described by https://auth0.com/docs/flows/authorization-code-flow
     * grant_type
     * code
     * redirect_uri
-    * state
+    * session_state
 8. Response back in JSON form
     * access_token
     * expires_in
