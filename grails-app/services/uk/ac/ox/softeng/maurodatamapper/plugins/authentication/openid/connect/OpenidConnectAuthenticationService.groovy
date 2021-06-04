@@ -24,6 +24,7 @@ import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.pr
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.rest.transport.AuthorizationResponseParameters
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.rest.transport.TokenResponseBody
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectTokenService
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUserService
 import uk.ac.ox.softeng.maurodatamapper.security.authentication.AuthenticationSchemeService
@@ -31,6 +32,7 @@ import uk.ac.ox.softeng.maurodatamapper.security.authentication.AuthenticationSc
 import com.auth0.jwt.exceptions.JWTVerificationException
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+
 /**
  * https://auth0.com/docs/flows/authorization-code-flow
  * https://www.keycloak.org/docs/latest/securing_apps/index.html#endpoints
@@ -41,8 +43,10 @@ import groovy.util.logging.Slf4j
 class OpenidConnectAuthenticationService implements AuthenticationSchemeService {
 
     OpenidConnectProviderService openidConnectProviderService
+    OpenidConnectTokenService openidConnectTokenService
 
     CatalogueUserService catalogueUserService
+
 
     SessionService sessionService
 
@@ -76,9 +80,10 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
         }
 
         Map<String, Object> responseBody = openidConnectProviderService.loadTokenFromOpenidConnectProvider(openidConnectProvider,
-                                                     openidConnectProvider.getAccessTokenRequestParameters(authorizationResponseParameters.code,
-                                                                                                           authorizationResponseParameters.redirectUri,
-                                                                                                           authorizationResponseParameters.sessionState)
+                                                                                                           openidConnectProvider.getAccessTokenRequestParameters(
+                                                                                                               authorizationResponseParameters.code,
+                                                                                                               authorizationResponseParameters.redirectUri,
+                                                                                                               authorizationResponseParameters.sessionState)
         )
 
         if (!responseBody) {
@@ -118,6 +123,8 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
             user.save(flush: true, validate: false)
             user.addCreatedEdit(user)
         }
+
+        openidConnectTokenService.updateAndStoreTokenForCatalogueUser(user, tokenDetails)
 
         user
     }

@@ -18,6 +18,7 @@ import com.auth0.jwt.interfaces.Verification
 
 import java.security.interfaces.ECPublicKey
 import java.security.interfaces.RSAPublicKey
+
 /**
  * https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
  * @since 02/06/2021
@@ -35,11 +36,17 @@ class OpenidConnectIdTokenJwtVerifier {
 
     OpenidConnectIdTokenJwtVerifier(OpenidConnectProvider openidConnectProvider, TokenResponseBody tokenDetails,
                                     AuthorizationResponseParameters authenticationDetails) {
-        this.decodedIdToken = tokenDetails.decodedIdToken
+        this(openidConnectProvider, tokenDetails.decodedIdToken, tokenDetails.sessionState, authenticationDetails.sessionState,
+             authenticationDetails.nonce)
+    }
+
+    OpenidConnectIdTokenJwtVerifier(OpenidConnectProvider openidConnectProvider, DecodedJWT decodedIdToken, String tokenSessionState,
+                                    String authenticationSessionState, String nonce) {
+        this.decodedIdToken = decodedIdToken
         this.providerLabel = openidConnectProvider.label
         this.openidConnectProvider = openidConnectProvider
-        this.tokenSessionState = tokenDetails.sessionState
-        this.authenticationSessionState = authenticationDetails.sessionState
+        this.tokenSessionState = tokenSessionState
+        this.authenticationSessionState = authenticationSessionState
         this.maxAgeOfAuthentication = openidConnectProvider.authorizationEndpointParameters.maxAge
 
         JwkProvider provider = new UrlJwkProvider(openidConnectProvider.discoveryDocument.jwksUri.toURL())
@@ -49,16 +56,20 @@ class OpenidConnectIdTokenJwtVerifier {
         Verification verification = JWT.require(algorithm)
             .withIssuer(openidConnectProvider.discoveryDocument.issuer)
             .withAudience(openidConnectProvider.clientId)
-            .withClaim('session_state', tokenDetails.sessionState)
-            .withClaim('nonce', authenticationDetails.nonce)
             .withClaimPresence('email')
 
         if (decodedIdToken.audience.size() > 1) {
-            verification = verification.withClaim('azp', openidConnectProvider.clientId)
+            verification.withClaim('azp', openidConnectProvider.clientId)
         }
 
+        if (tokenSessionState)
+            verification.withClaim('session_state', tokenSessionState)
+
+        if (nonce)
+            verification.withClaim('nonce', nonce)
+
         if (maxAgeOfAuthentication != null) {
-            verification = verification.withClaimPresence('auth_time')
+            verification.withClaimPresence('auth_time')
         }
 
         jwtVerifier = verification.build()
@@ -73,7 +84,7 @@ class OpenidConnectIdTokenJwtVerifier {
         // 12 (acr) out of scope
 
         // 13
-        if(maxAgeOfAuthentication) {
+        if (maxAgeOfAuthentication) {
             Claim authTime = decodedIdToken.getClaim('auth_time')
             Date now = new Date()
             now.setTime((now.getTime() / 1000 * 1000) as long); // truncate millis

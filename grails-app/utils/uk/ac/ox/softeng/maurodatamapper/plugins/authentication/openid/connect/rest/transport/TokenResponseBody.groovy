@@ -18,7 +18,6 @@ class TokenResponseBody {
     Integer notBeforePolicy
     String sessionState
     String scope
-    DecodedJWT decodedIdToken
 
     TokenResponseBody(Map<String, Object> data) {
         accessToken = data.access_token
@@ -30,6 +29,9 @@ class TokenResponseBody {
         notBeforePolicy = data['not-before-policy'] as Integer
         sessionState = data.session_state
         scope = data.scope
-        decodedIdToken = JWT.decode(idToken)
+    }
+
+    DecodedJWT getDecodedIdToken(){
+        JWT.decode(idToken)
     }
 }
