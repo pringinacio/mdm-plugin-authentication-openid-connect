@@ -21,6 +21,13 @@ import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.pr
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.details.DiscoveryDocumentService
 
 import grails.gorm.transactions.Transactional
+import io.micronaut.core.type.Argument
+import io.micronaut.http.HttpRequest
+import io.micronaut.http.HttpStatus
+import io.micronaut.http.MediaType
+import io.micronaut.http.client.HttpClient
+import io.micronaut.http.client.exceptions.HttpClientResponseException
+import io.micronaut.http.uri.UriBuilder
 
 @Transactional
 class OpenidConnectProviderService {
@@ -51,9 +58,57 @@ class OpenidConnectProviderService {
         OpenidConnectProvider.findByLabel(label)
     }
 
-    OpenidConnectProvider loadDiscoveryDocumentIntoOpenidConnectProvider(OpenidConnectProvider openidConnectProvider){
+    OpenidConnectProvider loadDiscoveryDocumentIntoOpenidConnectProvider(OpenidConnectProvider openidConnectProvider) {
         DiscoveryDocument discoveryDocument = discoveryDocumentService.loadDiscoveryDocumentForOpenidConnectProvider(openidConnectProvider)
         openidConnectProvider.discoveryDocument = discoveryDocument
         openidConnectProvider
+    }
+
+
+    Map<String, Object> loadTokenFromOpenidConnectProvider(OpenidConnectProvider openidConnectProvider, Map<String, String> requestBody) {
+        log.info('Loading token from OC provider')
+        URL tokenEndpoint = UriBuilder.of(openidConnectProvider.discoveryDocument.tokenEndpoint).build().toURL()
+
+        HttpClient client = HttpClient.create(getClientHostUrl(tokenEndpoint))
+        HttpRequest request = HttpRequest.POST(tokenEndpoint.path, requestBody)
+            .basicAuth('client_secret', openidConnectProvider.clientSecret)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
+            .accept(MediaType.APPLICATION_JSON_TYPE)
+
+        loadMapFromEndpoint(client, request)
+    }
+
+
+    Map<String, Object> loadUserInfoFromOpenidConnectProvider(OpenidConnectProvider openidConnectProvider, String accessToken) {
+        log.info('Loading user info from OC provider')
+        URL userInfoEndpoint = UriBuilder.of(openidConnectProvider.discoveryDocument.userinfoEndpoint).build().toURL()
+
+        HttpClient client = HttpClient.create(getClientHostUrl(userInfoEndpoint))
+        HttpRequest request = HttpRequest.GET(userInfoEndpoint.path)
+            .bearerAuth(accessToken)
+            .accept(MediaType.APPLICATION_JSON_TYPE)
+        loadMapFromEndpoint(client, request)
+    }
+
+    private Map<String, Object> loadMapFromEndpoint(HttpClient httpClient, HttpRequest httpRequest) {
+        try {
+            httpClient.toBlocking().exchange(httpRequest, Argument.mapOf(String, Object)).body()
+        } catch (HttpClientResponseException e) {
+            switch (e.status) {
+                case HttpStatus.UNAUTHORIZED:
+                case HttpStatus.FORBIDDEN:
+                    return [:]
+                default:
+                    //TODO reduce to trace
+                    log.warn("Could not get data from Openid Connect Provider: \n${e.response.body()}")
+                    return [:]
+            }
+        }
+    }
+
+    private URL getClientHostUrl(URL fullUrl) {
+        String clientHostUrl = "${fullUrl.protocol}://${fullUrl.host}"
+        if (fullUrl.port != -1) clientHostUrl = "${clientHostUrl}:${fullUrl.port}"
+        clientHostUrl.toURL()
     }
 }

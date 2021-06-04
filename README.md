@@ -103,3 +103,7 @@ https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
 ## Client Authentication
 
 https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
+
+## Keycloak Documentation
+
+https://www.keycloak.org/docs/latest/securing_apps/index.html#endpoints
