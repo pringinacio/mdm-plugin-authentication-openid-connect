@@ -103,11 +103,16 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
 
         if (!user) {
             log.info('Creating new user {}', emailAddress)
+
+            Map<String, Object> userInfoBody = openidConnectProviderService.loadUserInfoFromOpenidConnectProvider(openidConnectProvider, tokenDetails.accessToken)
+
             URL issuerUrl = openidConnectProvider.discoveryDocument.issuer.toURL()
             user = catalogueUserService.createNewUser(emailAddress: emailAddress,
                                                       password: null,
+                                                      firstName: userInfoBody.given_name ?: 'Unknown',
+                                                      lastName: userInfoBody.family_name ?: 'Unknown',
                                                       createdBy: "openidConnectAuthentication@${issuerUrl.authority}",
-                                                      pending: false, firstName: "Unknown", lastName: 'Unknown')
+                                                      pending: false)
 
             if (!user.validate()) throw new ApiInvalidModelException('OCAS02:', 'Invalid user creation', user.errors)
             user.save(flush: true, validate: false)

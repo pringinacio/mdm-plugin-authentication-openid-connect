@@ -19,6 +19,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
+import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUserService
 import uk.ac.ox.softeng.maurodatamapper.test.functional.BaseFunctionalSpec
 
@@ -80,6 +81,11 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
     @Transactional
     OpenidConnectProvider getMicrosoftProvider() {
         OpenidConnectProvider.findByLabel(BootstrapModels.MICROSOFT_OPENID_CONNECT_PROVIDER_NAME)
+    }
+
+    @Transactional
+    CatalogueUser getUser(String emailAddress){
+        CatalogueUser.findByEmailAddress(emailAddress)
     }
 
     @Override
@@ -178,8 +184,16 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
         then:
         verifyResponse(OK, response)
-    }
 
+        when: 'check user has been created'
+        CatalogueUser user = getUser('keycloak-only@maurodatamapper.com')
+
+        then:
+        user
+        user.firstName == 'keycloak-only'
+        user.lastName == 'User'
+        user.createdBy == 'openidConnectAuthentication@jenkins.cs.ox.ac.uk'
+    }
 
     @PendingFeature
     void 'GOOGLE01 - test logging in with empty authentication code'() {
