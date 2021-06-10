@@ -1,10 +1,9 @@
 maurodatamapper:
     openidConnect:
         google:
-            enabled: true
+            enabled: false
         microsoft:
-            enabled: true
+            enabled: false
             tenant: common
         keycloak:
             enabled: true
-            issuerUrl: http://localhost

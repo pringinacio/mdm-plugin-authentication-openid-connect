@@ -17,11 +17,13 @@ maurodatamapper:
         url: http://localhost
     openidConnect:
         google:
-            clientId: '894713962139-bcggqkmpj45gu5v58o5mc9qc89f3tk16.apps.googleusercontent.com'
-            clientSecret: 'Qa3PycVansOZ5ivwx-Dx8PHT'
+            enabled: true
+            clientId: googleClientId
+            clientSecret: googleClientSecret
         microsoft:
+            enabled: true
             clientId: microsoftClientId
-            clientSecret: clientSecret
+            clientSecret: microsoftClientSecret
         keycloak:
             baseUrl: https://jenkins.cs.ox.ac.uk/auth
             realm: 'test'

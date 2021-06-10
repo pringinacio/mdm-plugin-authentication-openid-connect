@@ -31,13 +31,10 @@ import org.jsoup.Connection
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.FormElement
-import spock.lang.Ignore
 import spock.lang.PendingFeature
-import spock.lang.Stepwise
 
 import static io.micronaut.http.HttpStatus.OK
 import static io.micronaut.http.HttpStatus.UNAUTHORIZED
-
 /**
  *
  * <pre>
@@ -50,7 +47,6 @@ import static io.micronaut.http.HttpStatus.UNAUTHORIZED
  */
 @Slf4j
 @Integration
-@Stepwise
 class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
     CatalogueUserService catalogueUserService
@@ -75,12 +71,16 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
     @Transactional
     OpenidConnectProvider getGoogleProvider() {
-        OpenidConnectProvider.findByLabel(BootstrapModels.GOOGLE_OPENID_CONNECT_PROVIDER_NAME)
+        OpenidConnectProvider provider = OpenidConnectProvider.findByLabel(BootstrapModels.GOOGLE_OPENID_CONNECT_PROVIDER_NAME)
+        provider.getFullAuthorizationEndpointUrl()
+        provider
     }
 
     @Transactional
     OpenidConnectProvider getMicrosoftProvider() {
-        OpenidConnectProvider.findByLabel(BootstrapModels.MICROSOFT_OPENID_CONNECT_PROVIDER_NAME)
+        OpenidConnectProvider provider = OpenidConnectProvider.findByLabel(BootstrapModels.MICROSOFT_OPENID_CONNECT_PROVIDER_NAME)
+        provider.getFullAuthorizationEndpointUrl()
+        provider
     }
 
     @Transactional
@@ -93,8 +93,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         'authentication'
     }
 
-    @Ignore
-    void 'test getting public endpoint of providers'() {
+    void 'PUBLIC - test getting public endpoint of providers'() {
         when:
         GET('openidConnectProviders', STRING_ARG, true)
 
@@ -105,7 +104,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
     void 'KEYCLOAK01 - test logging in with empty authentication code'() {
         given:
-        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak(keycloakProvider)
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak()
         authorizeResponse.code = ''
 
         when: 'in call made to login'
@@ -117,7 +116,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
     void 'KEYCLOAK02 - test logging in with random authentication code'() {
         given:
-        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak(keycloakProvider)
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak()
         authorizeResponse.code = UUID.randomUUID().toString()
 
         when: 'in call made to login'
@@ -129,7 +128,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
     void 'KEYCLOAK03 - test logging in with no authentication code'() {
         given:
-        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak(keycloakProvider)
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak()
         authorizeResponse.remove('code')
 
 
@@ -142,7 +141,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
     void 'KEYCLOAK04 - test logging in with valid authentication code and invalid session_state'() {
         given:
-        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak(keycloakProvider)
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak()
         authorizeResponse.session_state = UUID.randomUUID().toString()
 
         when: 'in call made to login'
@@ -154,7 +153,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
     void 'KEYCLOAK05 - test logging in with valid authentication code and invalid nonce'() {
         given:
-        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak(keycloakProvider)
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak()
         authorizeResponse.nonce = UUID.randomUUID().toString()
 
         when: 'in call made to login'
@@ -166,7 +165,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
     void 'KEYCLOAK06 - test logging in with valid authentication code and parameters with existing user'() {
         given:
-        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak(keycloakProvider)
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak()
 
         when: 'in call made to login'
         POST('login?scheme=openIdConnect', authorizeResponse)
@@ -177,7 +176,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
     void 'KEYCLOAK07 - test logging in with valid authentication code and parameters with non-existent user'() {
         given:
-        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak(keycloakProvider, 'keycloak-only', 'keycloak-only')
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak('keycloak-only', 'keycloak-only')
 
         when: 'in call made to login'
         POST('login?scheme=openIdConnect', authorizeResponse)
@@ -197,8 +196,12 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
     @PendingFeature
     void 'GOOGLE01 - test logging in with empty authentication code'() {
+        given:
+        Map<String, String> authorizeResponse = authoriseAgainstGoogle()
+        authorizeResponse.code = ''
+
         when: 'in call made to login'
-        POST('login?scheme=openIdConnect', [openidConnectProviderId: GoogleProviderId, code: ''])
+        POST('login?scheme=openIdConnect', authorizeResponse)
 
         then:
         verifyResponse(UNAUTHORIZED, response)
@@ -206,9 +209,12 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
     @PendingFeature
     void 'GOOGLE02 - test logging in with random authentication code'() {
+        given:
+        Map<String, String> authorizeResponse = authoriseAgainstGoogle()
+        authorizeResponse.code = UUID.randomUUID().toString()
 
         when: 'in call made to login'
-        POST('login?scheme=openIdConnect', [openidConnectProviderId: GoogleProviderId, code: UUID.randomUUID().toString()])
+        POST('login?scheme=openIdConnect', authorizeResponse)
 
         then:
         verifyResponse(UNAUTHORIZED, response)
@@ -216,54 +222,110 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
     @PendingFeature
     void 'GOOGLE03 - test logging in with no authentication code'() {
+        given:
+        Map<String, String> authorizeResponse = authoriseAgainstGoogle()
+        authorizeResponse.remove('code')
+
+
         when: 'in call made to login'
-        POST('login?scheme=openIdConnect', [openidConnectProviderId: GoogleProviderId])
+        POST('login?scheme=openIdConnect', authorizeResponse)
 
         then:
         verifyResponse(UNAUTHORIZED, response)
     }
 
     @PendingFeature
-    void 'GOOGLE04 - test logging in with  authentication code'() {
+    void 'GOOGLE04 - test logging in with valid authentication code and invalid session_state'() {
+        given:
+        Map<String, String> authorizeResponse = authoriseAgainstGoogle()
+        authorizeResponse.session_state = UUID.randomUUID().toString()
+
         when: 'in call made to login'
-        POST('login?scheme=openIdConnect', [
-            openidConnectProviderId: GoogleProviderId,
-            code                   : 'ya29' +
-                                     '.a0AfH6SMCO31EOC1LlE2rnGsFQOkpJNSK95sp7KUb-LXAiqv16YG3Zm_gE7MKA3fZUko1lNpNUnpR8tFfGnvB8m9blDbz4fuvI6oD6LoN9zcuFlzDQtztdpQJmc9fZHnd0FdNlWl34ZizU-JrsT_XvDZTMlDeZ',
-        ])
+        POST('login?scheme=openIdConnect', authorizeResponse)
+
+        then:
+        verifyResponse(UNAUTHORIZED, response)
+    }
+
+    @PendingFeature
+    void 'GOOGLE05 - test logging in with valid authentication code and invalid nonce'() {
+        given:
+        Map<String, String> authorizeResponse = authoriseAgainstGoogle()
+        authorizeResponse.nonce = UUID.randomUUID().toString()
+
+        when: 'in call made to login'
+        POST('login?scheme=openIdConnect', authorizeResponse)
+
+        then:
+        verifyResponse(UNAUTHORIZED, response)
+    }
+
+    @PendingFeature
+    void 'GOOGLE06 - test logging in with valid authentication code and parameters with existing user'() {
+        given:
+        Map<String, String> authorizeResponse = authoriseAgainstGoogle()
+
+        when: 'in call made to login'
+        POST('login?scheme=openIdConnect', authorizeResponse)
 
         then:
         verifyResponse(OK, response)
     }
 
-    /*
-    [
-      {
-        "id": "f92b2ec7-6203-49c1-9d1b-972bb87f9420",
-        "label": "Google Openid-Connect Provider",
-        "openidConnectProviderType": "GOOGLE",
-        "authenticationRequestPath": "http://google.com/o/oauth2/v2/auth?scope=openid+email&response_type=code&state=bb0140b9-5e7f-46d2-88bb-d8e66fab66ab&nonce=cda8e9b7
-        -ee90-4f95-a3b1-2cd386cda941&client_id=894713962139-bcggqkmpj45gu5v58o5mc9qc89f3tk16.apps.googleusercontent.com"
-      },
-      {
-        "id": "cb33b6f7-8387-439e-91ca-b0662de873d8",
-        "label": "Keycloak Openid-Connect Provider",
-        "openidConnectProviderType": "KEYCLOAK",
-        "authenticationRequestPath": "https://jenkins.cs.ox.ac.uk/auth/realms/test/protocol/openid-connect/auth?scope=openid+email&response_type=code&state=1c6771be-7a08
-        -423a-8dba-8bc82f833775&nonce=d7d17854-a8d6-404d-9d14-79f65500ec57&client_id=mdm"
-      },
-      {
-        "id": "42d10985-7e02-4276-9268-fbc346255d52",
-        "label": "Microsoft Openid-Connect Provider",
-        "openidConnectProviderType": "MICROSOFT",
-        "authenticationRequestPath": "https://login.microsoftonline.com/organizations/oauth2/v2
-        .0/authorize?scope=openid+email&response_type=code&state=58ae9e3c-4c2e-416c-be73-0909d4c1579d&nonce=c0230aff-0427-4e63-bd73-ca7907fbfa9a&client_id=microsoftClientId"
-      }
-    ]
-     */
+    @PendingFeature
+    void 'GOOGLE07 - test logging in with valid authentication code and parameters with non-existent user'() {
+        given:
+        Map<String, String> authorizeResponse = authoriseAgainstGoogle('google-only', 'google-only')
+
+        when: 'in call made to login'
+        POST('login?scheme=openIdConnect', authorizeResponse)
+
+        then:
+        verifyResponse(OK, response)
+
+        when: 'check user has been created'
+        CatalogueUser user = getUser('google-only@maurodatamapper.com')
+
+        then:
+        user
+        user.firstName == 'google-only'
+        user.lastName == 'User'
+        user.createdBy == 'openidConnectAuthentication@jenkins.cs.ox.ac.uk'
+    }
+
+    Map<String, String> authoriseAgainstKeyCloak( String username = 'mdm-admin', String password = 'mdm-admin') {
+        Map<String, Object> documentData = getAuthoriseDocument(keycloakProvider)
+
+        // Get the login form and complete it
+        FormElement form = (documentData.document as Document).getElementById('kc-form-login') as FormElement
+        form.getElementById('username').val(username)
+        form.getElementById('password').val(password)
+
+        // Setup connection to submit form for authentication
+        // We MUST submit the cookies from the authorise request along with the authenticate
+        Connection connection = form.submit()
+            .header('accept', '*/*')
+            .cookies(documentData.cookies as Map<String, String>)
+
+        // Execute and get the response
+        // The response "url" will hold all the params we need to pass for token request
+        Connection.Response response = connection.execute()
+
+        // Get all the parameters we got back from authenticate
+        Map<String, String> authenticateParameters = response.url().query.split('&').collectEntries {it.split('=')}
+        authenticateParameters.openidConnectProviderId = keycloakProvider.id.toString()
+        authenticateParameters.redirect_uri = documentData.redirectUrl
+        authenticateParameters
+    }
 
 
-    Map<String, String> authoriseAgainstKeyCloak(OpenidConnectProvider provider, String username = 'mdm-admin', String password = 'mdm-admin') {
+    Map<String, String> authoriseAgainstGoogle(String username = 'mdm-admin', String password = 'mdm-admin') {
+        Map<String, Object> documentData = getAuthoriseDocument(googleProvider)
+        assert false
+        [:]
+    }
+
+    Map<String, Object> getAuthoriseDocument(OpenidConnectProvider provider) {
 
         // Connect and then request the authorise page from KC
         String authoriseEndpoint = provider.getFullAuthorizationEndpointUrl()
@@ -276,28 +338,10 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         String authoriseEndpointWithRedirect = "${authoriseEndpoint}&redirect_uri=${URLEncoder.encode(redirectUrl, 'UTF-8')}"
 
         Connection authoriseConnection = Jsoup.connect(authoriseEndpointWithRedirect)
-        Document doc = authoriseConnection.get()
-
-        // Get the login form and complete it
-        FormElement form = doc.getElementById('kc-form-login') as FormElement
-        form.getElementById('username').val(username)
-        form.getElementById('password').val(password)
-
-        // Setup connection to submit form for authentication
-        // We MUST submit the cookies from the authorise request along with the authenticate
-        Connection connection = form.submit()
-            .header('accept', '*/*')
-            .cookies(authoriseConnection.response().cookies())
-
-        // Execute and get the response
-        // The response "url" will hold all the params we need to pass for token request
-        Connection.Response response = connection.execute()
-
-        // Get all the parameters we got back from authenticate
-        Map<String, String> authenticateParameters = response.url().query.split('&').collectEntries {it.split('=')}
-        authenticateParameters.openidConnectProviderId = keycloakProvider.id.toString()
-        authenticateParameters.redirect_uri = redirectUrl
-        authenticateParameters
+        [document   : authoriseConnection.get(),
+         cookies    : authoriseConnection.response().cookies(),
+         redirectUrl: redirectUrl
+        ]
     }
 
     Map<String, String> getResponseBody(String providerId, String code) {
