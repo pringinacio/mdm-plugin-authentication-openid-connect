@@ -18,21 +18,17 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
-import uk.ac.ox.softeng.maurodatamapper.core.session.SessionService
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.jwt.OpenidConnectIdTokenJwtVerifier
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.rest.transport.AuthorizationResponseParameters
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.rest.transport.TokenResponseBody
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectToken
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectTokenService
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUserService
 import uk.ac.ox.softeng.maurodatamapper.security.authentication.AuthenticationSchemeService
 
-import com.auth0.jwt.exceptions.JWTVerificationException
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-
 /**
  * https://auth0.com/docs/flows/authorization-code-flow
  * https://www.keycloak.org/docs/latest/securing_apps/index.html#endpoints
@@ -46,9 +42,6 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
     OpenidConnectTokenService openidConnectTokenService
 
     CatalogueUserService catalogueUserService
-
-
-    SessionService sessionService
 
 
     @Override
@@ -91,25 +84,20 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
             return null
         }
 
-        TokenResponseBody tokenDetails = new TokenResponseBody(responseBody)
+        OpenidConnectToken token = openidConnectTokenService.createToken(openidConnectProvider, responseBody)
 
-        OpenidConnectIdTokenJwtVerifier verifier = new OpenidConnectIdTokenJwtVerifier(openidConnectProvider, tokenDetails, authorizationResponseParameters)
-
-        try {
-            verifier.verify()
-        } catch (JWTVerificationException exception) {
-            log.warn("Access token failed verification: ${exception.message}")
+        if (!openidConnectTokenService.verifyIdToken(token, authorizationResponseParameters)) {
             return null
         }
 
-        String emailAddress = tokenDetails.decodedIdToken.getClaim('email').asString()
+        String emailAddress = token.getIdTokenClaim('email').asString()
 
         CatalogueUser user = catalogueUserService.findByEmailAddress(emailAddress)
 
         if (!user) {
             log.info('Creating new user {}', emailAddress)
 
-            Map<String, Object> userInfoBody = openidConnectProviderService.loadUserInfoFromOpenidConnectProvider(openidConnectProvider, tokenDetails.accessToken)
+            Map<String, Object> userInfoBody = openidConnectProviderService.loadUserInfoFromOpenidConnectProvider(openidConnectProvider, token.accessToken)
 
             URL issuerUrl = openidConnectProvider.discoveryDocument.issuer.toURL()
             user = catalogueUserService.createNewUser(emailAddress: emailAddress,
@@ -124,7 +112,9 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
             user.addCreatedEdit(user)
         }
 
-        openidConnectTokenService.createAndStoreTokenForCatalogueUser(user, openidConnectProvider, tokenDetails)
+        token.createdBy = user.emailAddress
+        token.catalogueUser = user
+        openidConnectTokenService.validateAndSave(token)
 
         user
     }

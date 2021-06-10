@@ -21,7 +21,7 @@ import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.jwt.OpenidConnectIdTokenJwtVerifier
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProviderService
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.rest.transport.TokenResponseBody
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.rest.transport.AuthorizationResponseParameters
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
 
 import com.auth0.jwt.exceptions.JWTVerificationException
@@ -40,27 +40,43 @@ class OpenidConnectTokenService {
         OpenidConnectToken.findByCatalogueUser(catalogueUser)
     }
 
-    void createAndStoreTokenForCatalogueUser(CatalogueUser catalogueUser, OpenidConnectProvider openidConnectProvider, TokenResponseBody tokenResponseBody) {
-
-        OpenidConnectToken token = new OpenidConnectToken(
-            createdBy: catalogueUser.emailAddress,
+    OpenidConnectToken createToken(OpenidConnectProvider openidConnectProvider, Map<String, Object> tokenResponseBody) {
+        new OpenidConnectToken(
             openidConnectProvider: openidConnectProvider,
-            catalogueUser: catalogueUser,
-            refreshToken: tokenResponseBody.refreshToken,
-            idToken: tokenResponseBody.idToken,
-            accessToken: tokenResponseBody.accessToken,
-            expiresIn: tokenResponseBody.expiresIn,
-            refreshExpiresIn: tokenResponseBody.refreshExpiresIn
-        )
-        if (!token.validate()) {
-            throw new ApiInvalidModelException('OCTSS02', 'Could not update and store openid connect token', token.errors)
+            accessToken: tokenResponseBody.access_token,
+            expiresIn: tokenResponseBody.expires_in as Integer,
+            refreshExpiresIn: tokenResponseBody.refresh_expires_in as Integer,
+            refreshToken: tokenResponseBody.refresh_token,
+            tokenType: tokenResponseBody.token_type,
+            idToken: tokenResponseBody.id_token,
+            notBeforePolicy: tokenResponseBody['not-before-policy'] as Integer,
+            sessionState: tokenResponseBody.session_state,
+            scope: tokenResponseBody.scope,
+            )
+    }
+
+    void validateAndSave(OpenidConnectToken openidConnectToken) {
+        if (!openidConnectToken.validate()) {
+            throw new ApiInvalidModelException('OCTSS02', 'Could not update and store openid connect token', openidConnectToken.errors)
         }
-        token.save(validate: false, flush: true)
+        openidConnectToken.save(validate: false, flush: true)
+    }
+
+    boolean verifyIdToken(OpenidConnectToken token, AuthorizationResponseParameters authorizationResponseParameters) {
+        OpenidConnectIdTokenJwtVerifier verifier = new OpenidConnectIdTokenJwtVerifier(token, authorizationResponseParameters.nonce,
+                                                                                       authorizationResponseParameters.sessionState)
+        try {
+            verifier.verify()
+            true
+        } catch (JWTVerificationException exception) {
+            log.warn("Access token failed verification: ${exception.message}")
+            return false
+        }
     }
 
     boolean verifyIdTokenForUser(CatalogueUser catalogueUser) {
         OpenidConnectToken token = findByCatalogueUser(catalogueUser)
-        OpenidConnectIdTokenJwtVerifier verifier = new OpenidConnectIdTokenJwtVerifier(token.openidConnectProvider, token.decodedIdToken, null, null, null)
+        OpenidConnectIdTokenJwtVerifier verifier = new OpenidConnectIdTokenJwtVerifier(token, null, null)
 
         try {
             verifier.verify()

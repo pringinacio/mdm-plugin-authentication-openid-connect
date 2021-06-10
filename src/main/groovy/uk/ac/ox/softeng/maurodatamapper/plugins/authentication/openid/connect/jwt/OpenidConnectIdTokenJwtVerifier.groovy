@@ -19,8 +19,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.j
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.rest.transport.AuthorizationResponseParameters
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.rest.transport.TokenResponseBody
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectToken
 
 import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkProvider
@@ -36,7 +35,6 @@ import groovy.util.logging.Slf4j
 
 import java.security.interfaces.ECPublicKey
 import java.security.interfaces.RSAPublicKey
-
 /**
  * https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
  * @since 02/06/2021
@@ -49,23 +47,16 @@ class OpenidConnectIdTokenJwtVerifier {
     final DecodedJWT decodedIdToken
     final String providerLabel
     final String tokenSessionState
-    final String authenticationSessionState
+    final String authorisationSessionState
     final OpenidConnectProvider openidConnectProvider
     final Long maxAgeOfAuthentication
 
-    OpenidConnectIdTokenJwtVerifier(OpenidConnectProvider openidConnectProvider, TokenResponseBody tokenDetails,
-                                    AuthorizationResponseParameters authenticationDetails) {
-        this(openidConnectProvider, tokenDetails.decodedIdToken, tokenDetails.sessionState, authenticationDetails.sessionState,
-             authenticationDetails.nonce)
-    }
-
-    OpenidConnectIdTokenJwtVerifier(OpenidConnectProvider openidConnectProvider, DecodedJWT decodedIdToken, String tokenSessionState,
-                                    String authenticationSessionState, String nonce) {
-        this.decodedIdToken = decodedIdToken
-        this.providerLabel = openidConnectProvider.label
-        this.openidConnectProvider = openidConnectProvider
-        this.tokenSessionState = tokenSessionState
-        this.authenticationSessionState = authenticationSessionState
+    OpenidConnectIdTokenJwtVerifier(OpenidConnectToken token, String nonce, String authorisationSessionState) {
+        this.decodedIdToken = token.decodedIdToken
+        this.providerLabel = token.openidConnectProvider.label
+        this.openidConnectProvider = token.openidConnectProvider
+        this.tokenSessionState = token.sessionState
+        this.authorisationSessionState = authorisationSessionState
         this.maxAgeOfAuthentication = openidConnectProvider.authorizationEndpointParameters.maxAge
 
         JwkProvider provider = new UrlJwkProvider(openidConnectProvider.discoveryDocument.jwksUri.toURL())
@@ -117,7 +108,7 @@ class OpenidConnectIdTokenJwtVerifier {
         }
 
         // Addtl
-        if (tokenSessionState != authenticationSessionState) throw new JWTVerificationException('Token session_state must match authentication session_state')
+        if (tokenSessionState != authorisationSessionState) throw new JWTVerificationException('Token session_state must match authentication session_state')
     }
 
     Algorithm getJwkAlgorithm(Jwk jwk) {

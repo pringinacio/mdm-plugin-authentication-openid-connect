@@ -22,6 +22,7 @@ import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.CreatorAware
 
 import com.auth0.jwt.JWT
+import com.auth0.jwt.interfaces.Claim
 import com.auth0.jwt.interfaces.DecodedJWT
 
 class OpenidConnectToken implements CreatorAware {
@@ -33,6 +34,10 @@ class OpenidConnectToken implements CreatorAware {
     String refreshToken
     Long expiresIn
     Long refreshExpiresIn
+    String sessionState
+    String scope
+    Integer notBeforePolicy
+    String tokenType
     OpenidConnectProvider openidConnectProvider
 
     static constraints = {
@@ -63,5 +68,9 @@ class OpenidConnectToken implements CreatorAware {
 
     DecodedJWT getDecodedAccessToken(){
         JWT.decode(accessToken)
+    }
+
+    Claim getIdTokenClaim(String name){
+        getDecodedIdToken().getClaim(name)
     }
 }
