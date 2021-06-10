@@ -18,8 +18,8 @@ maurodatamapper:
     openidConnect:
         google:
             enabled: true
-            clientId: googleClientId
-            clientSecret: googleClientSecret
+            clientId: 375980182300-tc8sb8c1jelomnkmvqtkkqpl4g8lkp06.apps.googleusercontent.com
+            clientSecret: XBeb-cTftDQxGvW-KMfR0vKR
         microsoft:
             enabled: true
             clientId: microsoftClientId
