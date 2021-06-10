@@ -71,7 +71,6 @@ class OpenidConnectProviderService {
 
         HttpClient client = HttpClient.create(getClientHostUrl(tokenEndpoint))
         HttpRequest request = HttpRequest.POST(tokenEndpoint.path, requestBody)
-            .basicAuth('client_secret', openidConnectProvider.clientSecret)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
             .accept(MediaType.APPLICATION_JSON_TYPE)
 
@@ -99,9 +98,8 @@ class OpenidConnectProviderService {
                 case HttpStatus.FORBIDDEN:
                     return [:]
                 default:
-                    //TODO reduce to trace
-                    log.warn("Could not get data from Openid Connect Provider: \n${e.response.body()}")
-                    return [:]
+                    Map body = e.response.body() as Map<String, Object>
+                    body.error ? body : [:]
             }
         }
     }

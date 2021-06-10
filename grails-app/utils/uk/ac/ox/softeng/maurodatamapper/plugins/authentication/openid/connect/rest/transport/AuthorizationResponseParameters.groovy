@@ -35,7 +35,9 @@ class AuthorizationResponseParameters {
         openidConnectProviderId = Utils.toUuid(parameters.openidConnectProviderId)
         this.sessionState = parameters.session_state
         this.redirectUri = parameters.redirect_uri
-        this.code = parameters.code
+        // Codes come in URL to UI we need to make sure they're decoded for the post request
+        // TODO what happens if we double decode...is this possible
+        this.code = parameters.code ? URLDecoder.decode(parameters.code as String, 'UTF-8') : null
         this.state = parameters.state
         this.nonce = parameters.nonce
     }

@@ -86,24 +86,36 @@ Notes:
 
 The API supplies all of the authentication url prebuilt and requires the UI to add the `redirect_uri` parameter
 
+## Openid Connect Specifications
+
 ### Authorisation Endpoint
 
 https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
 
-## Access Token Endpoint
+### Access Token Endpoint
 
 https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 
 A failed attempt will nullify the code returned by the UI, requiring a request for a new code
 
-## User Information Endpoint
+### User Information Endpoint
 
 https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
 
-## Client Authentication
+### Client Authentication
 
 https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
 
-## Keycloak Documentation
+## Provider Specific Documentation
+
+### Keycloak Documentation
 
 https://www.keycloak.org/docs/latest/securing_apps/index.html#endpoints
+
+### Google Documentation
+
+https://developers.google.com/identity/protocols/oauth2/openid-connect
+
+Note that refresh token is not sent as the access token has a 51min expiry life and therefore is unlikely to be needed.
+I believe that making any access check request "resets" the expiry counter but this will need to be checked
+It may also be the same for Keycloak with the "reset"

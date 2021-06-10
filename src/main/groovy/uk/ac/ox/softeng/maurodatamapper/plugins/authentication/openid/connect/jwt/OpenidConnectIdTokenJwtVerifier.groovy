@@ -73,9 +73,10 @@ class OpenidConnectIdTokenJwtVerifier {
             verification.withClaim('azp', openidConnectProvider.clientId)
         }
 
-        if (tokenSessionState)
+        if (tokenSessionState) {
             log.debug('Adding session_state verification')
             verification.withClaim('session_state', tokenSessionState)
+        }
 
         if (nonce) {
             log.debug('Adding nonce verification')

@@ -31,10 +31,11 @@ import org.jsoup.Connection
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.FormElement
-import spock.lang.PendingFeature
+import spock.lang.Ignore
 
 import static io.micronaut.http.HttpStatus.OK
 import static io.micronaut.http.HttpStatus.UNAUTHORIZED
+
 /**
  *
  * <pre>
@@ -194,76 +195,33 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         user.createdBy == 'openidConnectAuthentication@jenkins.cs.ox.ac.uk'
     }
 
-    @PendingFeature
-    void 'GOOGLE01 - test logging in with empty authentication code'() {
+    @Ignore('Manual testing only')
+    void 'GOOGLE01 - test logging in with valid authentication code and parameters with non-existent user'() {
         given:
-        Map<String, String> authorizeResponse = authoriseAgainstGoogle()
-        authorizeResponse.code = ''
-
-        when: 'in call made to login'
-        POST('login?scheme=openIdConnect', authorizeResponse)
-
-        then:
-        verifyResponse(UNAUTHORIZED, response)
-    }
-
-    @PendingFeature
-    void 'GOOGLE02 - test logging in with random authentication code'() {
-        given:
-        Map<String, String> authorizeResponse = authoriseAgainstGoogle()
-        authorizeResponse.code = UUID.randomUUID().toString()
-
-        when: 'in call made to login'
-        POST('login?scheme=openIdConnect', authorizeResponse)
-
-        then:
-        verifyResponse(UNAUTHORIZED, response)
-    }
-
-    @PendingFeature
-    void 'GOOGLE03 - test logging in with no authentication code'() {
-        given:
-        Map<String, String> authorizeResponse = authoriseAgainstGoogle()
-        authorizeResponse.remove('code')
-
-
-        when: 'in call made to login'
-        POST('login?scheme=openIdConnect', authorizeResponse)
-
-        then:
-        verifyResponse(UNAUTHORIZED, response)
-    }
-
-    @PendingFeature
-    void 'GOOGLE04 - test logging in with valid authentication code and invalid session_state'() {
-        given:
-        Map<String, String> authorizeResponse = authoriseAgainstGoogle()
-        authorizeResponse.session_state = UUID.randomUUID().toString()
-
-        when: 'in call made to login'
-        POST('login?scheme=openIdConnect', authorizeResponse)
-
-        then:
-        verifyResponse(UNAUTHORIZED, response)
-    }
-
-    @PendingFeature
-    void 'GOOGLE05 - test logging in with valid authentication code and invalid nonce'() {
-        given:
-        Map<String, String> authorizeResponse = authoriseAgainstGoogle()
-        authorizeResponse.nonce = UUID.randomUUID().toString()
-
-        when: 'in call made to login'
-        POST('login?scheme=openIdConnect', authorizeResponse)
-
-        then:
-        verifyResponse(UNAUTHORIZED, response)
-    }
-
-    @PendingFeature
-    void 'GOOGLE06 - test logging in with valid authentication code and parameters with existing user'() {
-        given:
-        Map<String, String> authorizeResponse = authoriseAgainstGoogle()
+        // Manually go to this web URL
+        /*
+https://accounts.google.com/o/oauth2/v2/auth?scope=openid+email&response_type=code&state=9329705d-3cd0-4a59-b588-a369d72aaeae&nonce=0c20ec52-b581-4044-a436-25c5fbea141c
+&client_id=375980182300-tc8sb8c1jelomnkmvqtkkqpl4g8lkp06.apps.googleusercontent.com&redirect_uri=https://jenkins.cs.ox.ac.uk
+        */
+        // Get the redirected URL
+        /*
+        https://jenkins.cs.ox.ac.uk/?
+        state=9329705d-3cd0-4a59-b588-a369d72aaeae
+        &code=4%2F0AY0e-g4c0Mjf20NX6c430OSvXx9cvezF8yQsNQwY0cPn-TZ024JjR--PAdmBafoU4h92qA
+        &scope=email+openid+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email
+        &authuser=0
+        &prompt=consent
+        */
+        // Extract the code param and put in the map below
+        // Run the test
+        // Each time you run you will need to get a new code
+        Map<String, String> authorizeResponse = [
+            openidConnectProviderId: googleProvider.id.toString(),
+            nonce                  : '0c20ec52-b581-4044-a436-25c5fbea141c',
+            redirect_uri           : 'https://jenkins.cs.ox.ac.uk',
+            state                  : '9329705d-3cd0-4a59-b588-a369d72aaeae',
+            code                   : '4%2F0AY0e-g5JdxH_MxYgsOjy8CVmqK89rD4hv7icxnLvM-ou7NRojJXC24D1etS_oNVq3n5BzQ',
+        ]
 
         when: 'in call made to login'
         POST('login?scheme=openIdConnect', authorizeResponse)
@@ -272,28 +230,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         verifyResponse(OK, response)
     }
 
-    @PendingFeature
-    void 'GOOGLE07 - test logging in with valid authentication code and parameters with non-existent user'() {
-        given:
-        Map<String, String> authorizeResponse = authoriseAgainstGoogle('google-only', 'google-only')
-
-        when: 'in call made to login'
-        POST('login?scheme=openIdConnect', authorizeResponse)
-
-        then:
-        verifyResponse(OK, response)
-
-        when: 'check user has been created'
-        CatalogueUser user = getUser('google-only@maurodatamapper.com')
-
-        then:
-        user
-        user.firstName == 'google-only'
-        user.lastName == 'User'
-        user.createdBy == 'openidConnectAuthentication@jenkins.cs.ox.ac.uk'
-    }
-
-    Map<String, String> authoriseAgainstKeyCloak( String username = 'mdm-admin', String password = 'mdm-admin') {
+    Map<String, String> authoriseAgainstKeyCloak(String username = 'mdm-admin', String password = 'mdm-admin') {
         Map<String, Object> documentData = getAuthoriseDocument(keycloakProvider)
 
         // Get the login form and complete it
@@ -315,14 +252,8 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         Map<String, String> authenticateParameters = response.url().query.split('&').collectEntries {it.split('=')}
         authenticateParameters.openidConnectProviderId = keycloakProvider.id.toString()
         authenticateParameters.redirect_uri = documentData.redirectUrl
+        authenticateParameters.nonce = documentData.nonce
         authenticateParameters
-    }
-
-
-    Map<String, String> authoriseAgainstGoogle(String username = 'mdm-admin', String password = 'mdm-admin') {
-        Map<String, Object> documentData = getAuthoriseDocument(googleProvider)
-        assert false
-        [:]
     }
 
     Map<String, Object> getAuthoriseDocument(OpenidConnectProvider provider) {
@@ -334,13 +265,14 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         Map<String, String> authorizeParameters = authoriseEndpoint.toURL().query.split('&').collectEntries {it.split('=')}
 
         // Pull out the nonce
-        String redirectUrl = "https://jenkins.cs.ox.ac.uk?nonce=${authorizeParameters.nonce}"
+        String redirectUrl = "https://jenkins.cs.ox.ac.uk"
         String authoriseEndpointWithRedirect = "${authoriseEndpoint}&redirect_uri=${URLEncoder.encode(redirectUrl, 'UTF-8')}"
 
         Connection authoriseConnection = Jsoup.connect(authoriseEndpointWithRedirect)
         [document   : authoriseConnection.get(),
          cookies    : authoriseConnection.response().cookies(),
-         redirectUrl: redirectUrl
+         redirectUrl: redirectUrl,
+         nonce      : authorizeParameters.nonce
         ]
     }
 

@@ -42,9 +42,13 @@ class OpenidConnectToken implements CreatorAware {
 
     static constraints = {
         catalogueUser unique: true
-        refreshToken blank: false
         idToken blank: false
-        refreshToken blank: false
+        accessToken blank: false
+        refreshToken blank: false, nullable: true
+        expiresIn min: 0L
+        refreshExpiresIn nullable: true, min: 0L
+        sessionState nullable: true
+        notBeforePolicy nullable: true
     }
 
     static mapping = {

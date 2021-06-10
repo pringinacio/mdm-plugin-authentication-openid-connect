@@ -84,6 +84,11 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
             return null
         }
 
+        if (responseBody.error) {
+            log.warn("Failed to get access token from Openid Connect Provider [${openidConnectProvider.label}] because [${responseBody.error_description}]")
+            return null
+        }
+
         OpenidConnectToken token = openidConnectTokenService.createToken(openidConnectProvider, responseBody)
 
         if (!openidConnectTokenService.verifyIdToken(token, authorizationResponseParameters)) {
