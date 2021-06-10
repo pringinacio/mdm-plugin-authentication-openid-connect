@@ -84,7 +84,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
     }
 
     @Transactional
-    CatalogueUser getUser(String emailAddress){
+    CatalogueUser getUser(String emailAddress) {
         CatalogueUser.findByEmailAddress(emailAddress)
     }
 
@@ -177,7 +177,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
     void 'KEYCLOAK07 - test logging in with valid authentication code and parameters with non-existent user'() {
         given:
-        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak(keycloakProvider, 'keycloak-only','keycloak-only')
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak(keycloakProvider, 'keycloak-only', 'keycloak-only')
 
         when: 'in call made to login'
         POST('login?scheme=openIdConnect', authorizeResponse)
@@ -266,8 +266,16 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
     Map<String, String> authoriseAgainstKeyCloak(OpenidConnectProvider provider, String username = 'mdm-admin', String password = 'mdm-admin') {
 
         // Connect and then request the authorise page from KC
-        String authoriseEndpoint = "${provider.getFullAuthorizationEndpointUrl()}&redirect_uri=https://jenkins.cs.ox.ac.uk"
-        Connection authoriseConnection = Jsoup.connect(authoriseEndpoint)
+        String authoriseEndpoint = provider.getFullAuthorizationEndpointUrl()
+
+        // Get all the parameters we sent to authorise
+        Map<String, String> authorizeParameters = authoriseEndpoint.toURL().query.split('&').collectEntries {it.split('=')}
+
+        // Pull out the nonce
+        String redirectUrl = "https://jenkins.cs.ox.ac.uk?nonce=${authorizeParameters.nonce}"
+        String authoriseEndpointWithRedirect = "${authoriseEndpoint}&redirect_uri=${URLEncoder.encode(redirectUrl, 'UTF-8')}"
+
+        Connection authoriseConnection = Jsoup.connect(authoriseEndpointWithRedirect)
         Document doc = authoriseConnection.get()
 
         // Get the login form and complete it
@@ -285,15 +293,11 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         // The response "url" will hold all the params we need to pass for token request
         Connection.Response response = connection.execute()
 
-        // Get all the parameters we sent to authorise
-        Map<String,String> authorizeParameters = authoriseEndpoint.toURL().query.split('&').collectEntries {it.split('=')}
-        // Get all the paraemeters we got back from authenticate
-        Map<String,String> authenticateParameters = response.url().query.split('&').collectEntries {it.split('=')}
-
-        // Add them together choosing the authenticate as the preferred value (shouldnt be any difference)
-        authorizeParameters.putAll(authenticateParameters)
-        authorizeParameters.openidConnectProviderId = keycloakProvider.id.toString()
-        authorizeParameters
+        // Get all the parameters we got back from authenticate
+        Map<String, String> authenticateParameters = response.url().query.split('&').collectEntries {it.split('=')}
+        authenticateParameters.openidConnectProviderId = keycloakProvider.id.toString()
+        authenticateParameters.redirect_uri = redirectUrl
+        authenticateParameters
     }
 
     Map<String, String> getResponseBody(String providerId, String code) {
