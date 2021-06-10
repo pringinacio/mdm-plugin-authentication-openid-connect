@@ -42,6 +42,12 @@ class OpenidConnectToken implements CreatorAware {
         refreshToken blank: false
     }
 
+    static mapping = {
+        idToken type: 'text'
+        accessToken type: 'text'
+        refreshToken type: 'text'
+    }
+
     @Override
     String getDomainType() {
         'OpenidConnectToken'

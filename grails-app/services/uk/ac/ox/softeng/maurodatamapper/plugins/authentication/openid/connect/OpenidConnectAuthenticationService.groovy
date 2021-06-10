@@ -124,7 +124,7 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
             user.addCreatedEdit(user)
         }
 
-        openidConnectTokenService.updateAndStoreTokenForCatalogueUser(user, tokenDetails)
+        openidConnectTokenService.createAndStoreTokenForCatalogueUser(user, openidConnectProvider, tokenDetails)
 
         user
     }

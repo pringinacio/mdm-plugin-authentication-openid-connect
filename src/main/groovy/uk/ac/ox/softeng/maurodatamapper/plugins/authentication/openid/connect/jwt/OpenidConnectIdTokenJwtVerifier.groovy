@@ -32,6 +32,7 @@ import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.Claim
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.interfaces.Verification
+import groovy.util.logging.Slf4j
 
 import java.security.interfaces.ECPublicKey
 import java.security.interfaces.RSAPublicKey
@@ -40,6 +41,7 @@ import java.security.interfaces.RSAPublicKey
  * https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
  * @since 02/06/2021
  */
+@Slf4j
 class OpenidConnectIdTokenJwtVerifier {
 
     final JWTVerifier jwtVerifier
@@ -76,16 +78,21 @@ class OpenidConnectIdTokenJwtVerifier {
             .withClaimPresence('email')
 
         if (decodedIdToken.audience.size() > 1) {
+            log.debug('Adding azp verification')
             verification.withClaim('azp', openidConnectProvider.clientId)
         }
 
         if (tokenSessionState)
+            log.debug('Adding session_state verification')
             verification.withClaim('session_state', tokenSessionState)
 
-        if (nonce)
+        if (nonce) {
+            log.debug('Adding nonce verification')
             verification.withClaim('nonce', nonce)
+        }
 
         if (maxAgeOfAuthentication != null) {
+            log.debug('Adding auth_time verification')
             verification.withClaimPresence('auth_time')
         }
 

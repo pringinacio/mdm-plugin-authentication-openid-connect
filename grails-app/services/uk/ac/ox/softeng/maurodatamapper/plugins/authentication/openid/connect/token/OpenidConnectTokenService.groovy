@@ -19,6 +19,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.t
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.jwt.OpenidConnectIdTokenJwtVerifier
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.rest.transport.TokenResponseBody
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
@@ -39,12 +40,11 @@ class OpenidConnectTokenService {
         OpenidConnectToken.findByCatalogueUser(catalogueUser)
     }
 
-    void updateAndStoreTokenForCatalogueUser(CatalogueUser catalogueUser, TokenResponseBody tokenResponseBody) {
-
-        OpenidConnectToken existingToken = findByCatalogueUser(catalogueUser)
-        if (existingToken) delete(existingToken)
+    void createAndStoreTokenForCatalogueUser(CatalogueUser catalogueUser, OpenidConnectProvider openidConnectProvider, TokenResponseBody tokenResponseBody) {
 
         OpenidConnectToken token = new OpenidConnectToken(
+            createdBy: catalogueUser.emailAddress,
+            openidConnectProvider: openidConnectProvider,
             catalogueUser: catalogueUser,
             refreshToken: tokenResponseBody.refreshToken,
             idToken: tokenResponseBody.idToken,
@@ -53,7 +53,7 @@ class OpenidConnectTokenService {
             refreshExpiresIn: tokenResponseBody.refreshExpiresIn
         )
         if (!token.validate()) {
-            throw new ApiInvalidModelException('OCTSS01', 'Could not update and store openid connect token', token.errors)
+            throw new ApiInvalidModelException('OCTSS02', 'Could not update and store openid connect token', token.errors)
         }
         token.save(validate: false, flush: true)
     }
