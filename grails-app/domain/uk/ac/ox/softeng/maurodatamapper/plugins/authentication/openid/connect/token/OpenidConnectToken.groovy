@@ -22,8 +22,10 @@ import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.CreatorAware
 
 import com.auth0.jwt.JWT
+import com.auth0.jwt.exceptions.JWTDecodeException
 import com.auth0.jwt.interfaces.Claim
 import com.auth0.jwt.interfaces.DecodedJWT
+import grails.gorm.DetachedCriteria
 
 class OpenidConnectToken implements CreatorAware {
 
@@ -39,6 +41,7 @@ class OpenidConnectToken implements CreatorAware {
     Integer notBeforePolicy
     String tokenType
     OpenidConnectProvider openidConnectProvider
+    JWT jwt = new JWT()
 
     static constraints = {
         catalogueUser unique: true
@@ -56,25 +59,45 @@ class OpenidConnectToken implements CreatorAware {
         accessToken type: 'text'
         refreshToken type: 'text'
     }
+    static transients = ['jwt']
 
     @Override
     String getDomainType() {
         'OpenidConnectToken'
     }
 
-    DecodedJWT getDecodedIdToken(){
-        JWT.decode(idToken)
+    DecodedJWT getDecodedIdToken() {
+        safeDecodeJwt(idToken)
     }
 
-    DecodedJWT getDecodedRefreshToken(){
-        JWT.decode(refreshToken)
+    DecodedJWT getDecodedRefreshToken() {
+        safeDecodeJwt(refreshToken)
     }
 
-    DecodedJWT getDecodedAccessToken(){
-        JWT.decode(accessToken)
+    DecodedJWT getDecodedAccessToken() {
+        safeDecodeJwt(accessToken)
     }
 
-    Claim getIdTokenClaim(String name){
+    Claim getIdTokenClaim(String name) {
         getDecodedIdToken().getClaim(name)
     }
+
+    private DecodedJWT safeDecodeJwt(String token) {
+        if (!token) return null
+        try {
+            jwt.decodeJwt(token)
+        } catch (JWTDecodeException ignored) {
+            null
+        }
+    }
+
+    static DetachedCriteria<OpenidConnectToken> byEmailAddress(String emailAddress) {
+        new DetachedCriteria<OpenidConnectToken>(OpenidConnectToken).where {
+            catalogueUser {
+                eq('emailAddress', emailAddress)
+            }
+        }
+    }
+
+
 }

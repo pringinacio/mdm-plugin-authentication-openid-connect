@@ -35,7 +35,6 @@ import spock.lang.Ignore
 
 import static io.micronaut.http.HttpStatus.OK
 import static io.micronaut.http.HttpStatus.UNAUTHORIZED
-
 /**
  *
  * <pre>
@@ -220,7 +219,7 @@ https://accounts.google.com/o/oauth2/v2/auth?scope=openid+email&response_type=co
             nonce                  : '0c20ec52-b581-4044-a436-25c5fbea141c',
             redirect_uri           : 'https://jenkins.cs.ox.ac.uk',
             state                  : '9329705d-3cd0-4a59-b588-a369d72aaeae',
-            code                   : '4%2F0AY0e-g5JdxH_MxYgsOjy8CVmqK89rD4hv7icxnLvM-ou7NRojJXC24D1etS_oNVq3n5BzQ',
+            code                   : '4%2F0AY0e-g6w7HkOLFe3kfPV5BVyoIqpwQ4McRhV_UGr8RxnQXvpVvAMPSkROqTtyM1cCm6KBA',
         ]
 
         when: 'in call made to login'
@@ -228,6 +227,15 @@ https://accounts.google.com/o/oauth2/v2/auth?scope=openid+email&response_type=co
 
         then:
         verifyResponse(OK, response)
+
+        when: 'check user has been created'
+        CatalogueUser user = getUser('ollie.freeman@gmail.com')
+
+        then:
+        user
+        user.firstName == 'Ollie'
+        user.lastName == 'Freeman'
+        user.createdBy == 'openidConnectAuthentication@jenkins.cs.ox.ac.uk'
     }
 
     Map<String, String> authoriseAgainstKeyCloak(String username = 'mdm-admin', String password = 'mdm-admin') {

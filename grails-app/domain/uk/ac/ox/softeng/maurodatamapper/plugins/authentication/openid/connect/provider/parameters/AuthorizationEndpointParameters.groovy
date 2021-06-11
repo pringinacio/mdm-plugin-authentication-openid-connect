@@ -72,7 +72,7 @@ class AuthorizationEndpointParameters implements CreatorAware {
     static belongsTo = [openidConnectProvider: OpenidConnectProvider]
 
     AuthorizationEndpointParameters() {
-        scope = 'openid email'
+        scope = 'openid email profile'
         responseType = 'code'
     }
 
