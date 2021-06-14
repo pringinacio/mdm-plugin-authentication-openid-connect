@@ -45,6 +45,7 @@ grails {
 
 ## Workflow
 
+### Authentication Workflow
 Described by https://auth0.com/docs/flows/authorization-code-flow
 
 1. UI requests known providers from us
@@ -79,7 +80,19 @@ Described by https://auth0.com/docs/flows/authorization-code-flow
     * not-before-policy
     * session_state
     * scope
+9. API verifies the id_token which is a JWT
+10. API retrieves userinfo to create user if one does not exist, otherwise grabs user for the email
+11. API stores the token data into the database?
     
+
+## Access Workflow
+
+1. Every subsequent API call is interecepted and the token is checked to ensure the access_token is still valid
+   * Done by checking "now" vs decodedjwt "getExpiresAt"
+   * access tokens are not always JWT, they are provider specific, so we treat them as coded strings as we dont want to rely on functionality which may not be there  
+2. If expired then we check for a refresh token and if that has expired
+3. If refresh token and not expired then we call for a new access token and update whats stored
+4. If no refresh token or expired then we invalidate the session and return
 
 
 Notes:

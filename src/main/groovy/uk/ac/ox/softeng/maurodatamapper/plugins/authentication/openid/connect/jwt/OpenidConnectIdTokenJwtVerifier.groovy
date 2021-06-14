@@ -17,119 +17,64 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.jwt
 
-import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectToken
 
-import com.auth0.jwk.Jwk
-import com.auth0.jwk.JwkProvider
-import com.auth0.jwk.UrlJwkProvider
-import com.auth0.jwt.JWT
-import com.auth0.jwt.JWTVerifier
-import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
-import com.auth0.jwt.interfaces.Claim
-import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.interfaces.Verification
 import groovy.util.logging.Slf4j
 
-import java.security.interfaces.ECPublicKey
-import java.security.interfaces.RSAPublicKey
 /**
  * https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
  * @since 02/06/2021
  */
 @Slf4j
-class OpenidConnectIdTokenJwtVerifier {
+class OpenidConnectIdTokenJwtVerifier extends OpenidConnectTokenJwtVerifier {
 
-    final JWTVerifier jwtVerifier
-
-    final DecodedJWT decodedIdToken
-    final String providerLabel
     final String tokenSessionState
-    final String authorisationSessionState
-    final OpenidConnectProvider openidConnectProvider
+    final String lastKnownSessionState
     final Long maxAgeOfAuthentication
+    final String nonce
 
-    OpenidConnectIdTokenJwtVerifier(OpenidConnectToken token, String nonce, String authorisationSessionState) {
-        this.decodedIdToken = token.decodedIdToken
-        this.providerLabel = token.openidConnectProvider.label
-        this.openidConnectProvider = token.openidConnectProvider
+    OpenidConnectIdTokenJwtVerifier(OpenidConnectToken token, String lastKnownSessionState) {
+        super(token.decodedIdToken, token.openidConnectProvider)
         this.tokenSessionState = token.sessionState
-        this.authorisationSessionState = authorisationSessionState
+        this.lastKnownSessionState = lastKnownSessionState
         this.maxAgeOfAuthentication = openidConnectProvider.authorizationEndpointParameters.maxAge
+        this.nonce = token.nonce
+    }
 
-        JwkProvider provider = new UrlJwkProvider(openidConnectProvider.discoveryDocument.jwksUri.toURL())
-        Jwk jsonWebKey = provider.get(decodedIdToken.keyId)
-        Algorithm algorithm = getJwkAlgorithm(jsonWebKey)
+    @Override
+    Verification buildVerification() {
+        Verification verification = super.buildVerification()
+            .withClaim('nonce', nonce)
+            .withClaim('session_state', lastKnownSessionState)
+            .withClaim('session_state', tokenSessionState)
 
-        Verification verification = JWT.require(algorithm)
-            .withIssuer(openidConnectProvider.discoveryDocument.issuer)
-            .withAudience(openidConnectProvider.clientId)
-            .withClaimPresence('email')
-
-        if (decodedIdToken.audience.size() > 1) {
-            log.debug('Adding azp verification')
-            verification.withClaim('azp', openidConnectProvider.clientId)
-        }
-
-        if (tokenSessionState) {
-            log.debug('Adding session_state verification')
-            verification.withClaim('session_state', tokenSessionState)
-        }
-
-        if (nonce) {
-            log.debug('Adding nonce verification')
-            verification.withClaim('nonce', nonce)
-        }
 
         if (maxAgeOfAuthentication != null) {
             log.debug('Adding auth_time verification')
             verification.withClaimPresence('auth_time')
         }
-
-        jwtVerifier = verification.build()
+        verification
     }
 
     @SuppressWarnings('GroovyVariableNotAssigned')
     void verify() throws JWTVerificationException {
         // Initial plain jwt verification
         // 1,2,3,4,5,6,7,9,10,11
-        jwtVerifier.verify(decodedIdToken)
+        super.verify()
 
         // 12 (acr) out of scope
 
         // 13
         if (maxAgeOfAuthentication) {
-            Claim authTime = decodedIdToken.getClaim('auth_time')
-            Date now = new Date()
-            now.setTime((now.getTime() / 1000 * 1000) as long); // truncate millis
-            Date agedDate = new Date(authTime.asDate().getTime() + maxAgeOfAuthentication * 1000)
-            if (now.after(agedDate)) throw new JWTVerificationException("Authentication code can't be used after ${agedDate}")
-        }
+            Long authDateSeconds = decodedToken.getClaim('auth_time').asLong()
+            Long issuedDateSeconds = decodedToken.getClaim('iat').asLong()
 
-        // Addtl
-        if (tokenSessionState != authorisationSessionState) throw new JWTVerificationException('Token session_state must match authentication session_state')
-    }
-
-    Algorithm getJwkAlgorithm(Jwk jwk) {
-        switch (jwk.algorithm) {
-            case 'RS256':
-                return Algorithm.RSA256((RSAPublicKey) jwk.publicKey, null)
-            case 'RS384':
-                return Algorithm.RSA384((RSAPublicKey) jwk.publicKey, null)
-            case 'RS512':
-                return Algorithm.RSA512((RSAPublicKey) jwk.publicKey, null)
-            case 'ES256':
-                return Algorithm.ECDSA256((ECPublicKey) jwk.publicKey, null)
-            case 'ES384':
-                return Algorithm.ECDSA384((ECPublicKey) jwk.publicKey, null)
-            case 'ES512':
-                return Algorithm.ECDSA512((ECPublicKey) jwk.publicKey, null)
-            default:
-                // verification 8 fail here
-                throw new ApiBadRequestException('OCASXX', "Unsupported JWK Algorithm [${jwk.algorithm}] used by provider [${providerLabel}]")
-
+            Long ageOfAuthentication = issuedDateSeconds - authDateSeconds
+            Date agedDate = new Date(decodedToken.getClaim('auth_time').asDate().getTime() + (maxAgeOfAuthentication * 1000))
+            if (ageOfAuthentication > maxAgeOfAuthentication) throw new JWTVerificationException("Authentication code can't be used after ${agedDate}")
         }
     }
+
 }

@@ -83,6 +83,15 @@ class OpenidConnectProvider implements CreatorAware {
         ]
     }
 
+    Map<String, String> getAccessTokenRefreshRequestParameters(String refreshToken) {
+        [
+            grant_type   : 'refresh_token',
+            client_id    : clientId,
+            client_secret: clientSecret,
+            refresh_token: refreshToken
+        ]
+    }
+
     String getFullAuthorizationEndpointUrl() {
         UriBuilder builder = UriBuilder.of(discoveryDocument.authorizationEndpoint)
         authorizationEndpointParameters.getAsMap().each {k, v ->

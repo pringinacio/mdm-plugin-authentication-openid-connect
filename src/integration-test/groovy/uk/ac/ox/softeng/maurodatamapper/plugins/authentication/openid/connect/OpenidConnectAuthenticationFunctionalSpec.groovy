@@ -17,8 +17,10 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
+import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectToken
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUserService
 import uk.ac.ox.softeng.maurodatamapper.test.functional.BaseFunctionalSpec
@@ -33,8 +35,10 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.FormElement
 import spock.lang.Ignore
 
+import static io.micronaut.http.HttpStatus.NOT_FOUND
 import static io.micronaut.http.HttpStatus.OK
 import static io.micronaut.http.HttpStatus.UNAUTHORIZED
+
 /**
  *
  * <pre>
@@ -84,8 +88,28 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
     }
 
     @Transactional
+    String getFolderId() {
+        Folder.findByLabel('Functional Test Folder').id.toString()
+    }
+
+    @Transactional
     CatalogueUser getUser(String emailAddress) {
         CatalogueUser.findByEmailAddress(emailAddress)
+    }
+
+    @Transactional
+    void removeRefreshTokenForUserToken(String emailAddress) {
+        OpenidConnectToken token = OpenidConnectToken.byEmailAddress(emailAddress).get()
+        token.refreshToken = null
+        token.refreshExpiresIn = null
+        token.save(flush: true)
+    }
+
+    @Transactional
+    void updateKeycloakProviderMaxAge(Long maxAge) {
+        OpenidConnectProvider provider = OpenidConnectProvider.findByLabel(BootstrapModels.KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME)
+        provider.authorizationEndpointParameters.maxAge = maxAge
+        provider.save(flush: true)
     }
 
     @Override
@@ -192,6 +216,94 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         user.firstName == 'keycloak-only'
         user.lastName == 'User'
         user.createdBy == 'openidConnectAuthentication@jenkins.cs.ox.ac.uk'
+    }
+
+    void 'KEYCLOAK08 - test logging in with valid authentication code and altered max_age'() {
+        given:
+        updateKeycloakProviderMaxAge(1)
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak('mdm-admin', 'mdm-admin')
+
+        when: 'in call made to login'
+        sleep(2000)
+        POST('login?scheme=openIdConnect', authorizeResponse)
+
+        then:
+        verifyResponse(UNAUTHORIZED, response)
+
+        cleanup:
+        updateKeycloakProviderMaxAge(null)
+    }
+
+    void 'KEYCLOAK09 - test access inside timeout'() {
+
+        when: 'not logged in'
+        GET("folders/${folderId}", MAP_ARG, true)
+
+        then: 'folder is not available'
+        verifyResponse(NOT_FOUND, response)
+
+        when: 'logged in'
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak('mdm-admin', 'mdm-admin')
+        POST('login?scheme=openIdConnect', authorizeResponse)
+        verifyResponse(OK, response)
+
+        and: 'getting folder'
+        GET("folders/${folderId}", MAP_ARG, true)
+
+        then: 'folder available'
+        verifyResponse(OK, response)
+    }
+
+    void 'KEYCLOAK10 - test access after timeout with no refresh token'() {
+
+        when: 'not logged in'
+        GET("folders/${folderId}", MAP_ARG, true)
+
+        then: 'folder is not available'
+        verifyResponse(NOT_FOUND, response)
+
+        when: 'logged in'
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak('mdm-admin', 'mdm-admin')
+        POST('login?scheme=openIdConnect', authorizeResponse)
+        verifyResponse(OK, response)
+
+        and: 'removing refresh token'
+        removeRefreshTokenForUserToken('admin@maurodatamapper.com')
+
+        and: 'getting folder'
+        sleep(65000)
+        GET("folders/${folderId}", MAP_ARG, true)
+
+        then: 'session timed out and unauthorised'
+        verifyResponse(UNAUTHORIZED, response)
+
+        when: 'getting folder'
+        GET("folders/${folderId}", MAP_ARG, true)
+
+        then: 'expected response for unlogged in user'
+        verifyResponse(NOT_FOUND, response)
+    }
+
+    void 'KEYCLOAK11 - test access after timeout with refresh token'() {
+
+        when: 'not logged in'
+        GET("folders/${folderId}", MAP_ARG, true)
+
+        then: 'folder is not available'
+        verifyResponse(NOT_FOUND, response)
+
+        when: 'logged in'
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak('mdm-admin', 'mdm-admin')
+        POST('login?scheme=openIdConnect', authorizeResponse)
+        verifyResponse(OK, response)
+
+        and: 'getting folder'
+        sleep(65000)
+        GET("folders/${folderId}", MAP_ARG, true)
+
+        then: 'session timed out and unauthorised'
+        verifyResponse(OK, response)
+
     }
 
     @Ignore('Manual testing only')

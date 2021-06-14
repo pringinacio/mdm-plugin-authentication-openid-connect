@@ -41,6 +41,7 @@ class OpenidConnectToken implements CreatorAware {
     Integer notBeforePolicy
     String tokenType
     OpenidConnectProvider openidConnectProvider
+    String nonce
     JWT jwt = new JWT()
 
     static constraints = {
@@ -52,6 +53,7 @@ class OpenidConnectToken implements CreatorAware {
         refreshExpiresIn nullable: true, min: 0L
         sessionState nullable: true
         notBeforePolicy nullable: true
+        nonce blank: false
     }
 
     static mapping = {
@@ -74,12 +76,16 @@ class OpenidConnectToken implements CreatorAware {
         safeDecodeJwt(refreshToken)
     }
 
-    DecodedJWT getDecodedAccessToken() {
-        safeDecodeJwt(accessToken)
-    }
-
     Claim getIdTokenClaim(String name) {
         getDecodedIdToken().getClaim(name)
+    }
+
+    Date getAccessTokenExpiry(){
+        decodedIdToken.expiresAt
+    }
+
+    Date getRefreshTokenExpiry(){
+        decodedRefreshToken?.expiresAt
     }
 
     private DecodedJWT safeDecodeJwt(String token) {

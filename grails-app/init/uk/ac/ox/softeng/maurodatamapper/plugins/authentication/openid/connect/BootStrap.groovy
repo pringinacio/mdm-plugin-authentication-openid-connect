@@ -17,6 +17,7 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
+import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.details.DiscoveryDocumentService
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
@@ -33,7 +34,6 @@ import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.con
 import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels.buildAndSaveGoogleProvider
 import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels.buildAndSaveKeycloakProvider
 import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels.buildAndSaveMicrosoftProvider
-import static uk.ac.ox.softeng.maurodatamapper.util.GormUtils.checkAndSave
 import static uk.ac.ox.softeng.maurodatamapper.util.GormUtils.checkAndSave
 
 @Slf4j
@@ -78,6 +78,11 @@ class BootStrap implements SecurityDefinition{
                     createBasicGroups('functionalTest', false)
                     checkAndSave(messageSource, editors, readers)
 
+                }
+
+                Folder.withNewTransaction {
+                  Folder  folder = new Folder(label: 'Functional Test Folder', createdBy: userEmailAddresses.functionalTest)
+                    checkAndSave(messageSource, folder)
                 }
             }
         }

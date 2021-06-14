@@ -29,6 +29,9 @@ import uk.ac.ox.softeng.maurodatamapper.security.authentication.AuthenticationSc
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+
+import javax.servlet.http.HttpSession
+
 /**
  * https://auth0.com/docs/flows/authorization-code-flow
  * https://www.keycloak.org/docs/latest/securing_apps/index.html#endpoints
@@ -42,7 +45,6 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
     OpenidConnectTokenService openidConnectTokenService
 
     CatalogueUserService catalogueUserService
-
 
     @Override
     String getName() {
@@ -64,6 +66,7 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
         log.info('Attempt to authenticate system using Openid Connect')
 
         AuthorizationResponseParameters authorizationResponseParameters = new AuthorizationResponseParameters(authenticationInformation)
+
 
         OpenidConnectProvider openidConnectProvider = openidConnectProviderService.get(authorizationResponseParameters.openidConnectProviderId)
 
@@ -89,9 +92,9 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
             return null
         }
 
-        OpenidConnectToken token = openidConnectTokenService.createToken(openidConnectProvider, responseBody)
+        OpenidConnectToken token = openidConnectTokenService.createToken(openidConnectProvider, responseBody, authorizationResponseParameters.nonce)
 
-        if (!openidConnectTokenService.verifyIdToken(token, authorizationResponseParameters)) {
+        if (!openidConnectTokenService.verifyIdToken(token, authorizationResponseParameters.sessionState)) {
             return null
         }
 
@@ -120,6 +123,7 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
         token.createdBy = user.emailAddress
         token.catalogueUser = user
         openidConnectTokenService.validateAndSave(token)
+        openidConnectTokenService.storeDataIntoHttpSession(token, authenticationInformation.session as HttpSession)
 
         user
     }

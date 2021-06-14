@@ -19,16 +19,25 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.t
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.jwt.OpenidConnectIdTokenJwtVerifier
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.jwt.OpenidConnectTokenJwtVerifier
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProviderService
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.rest.transport.AuthorizationResponseParameters
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
 
 import com.auth0.jwt.exceptions.JWTVerificationException
+import com.auth0.jwt.interfaces.DecodedJWT
 import grails.gorm.transactions.Transactional
+import groovy.util.logging.Slf4j
 
+import javax.servlet.http.HttpSession
+
+@Slf4j
 @Transactional
 class OpenidConnectTokenService {
+
+    static final String ACCESS_EXPIRY_SESSION_ATTRIBUTE_NAME='openidAccessExpiry'
+    static final String REFRESH_EXPIRY_SESSION_ATTRIBUTE_NAME='openidRefreshExpiry'
+    static final String OPEN_ID_AUTHENTICATION_SESSION_ATTRIBUTE_NAME='openidAuthentication'
 
     OpenidConnectProviderService openidConnectProviderService
 
@@ -40,7 +49,15 @@ class OpenidConnectTokenService {
         OpenidConnectToken.findByCatalogueUser(catalogueUser)
     }
 
-    OpenidConnectToken createToken(OpenidConnectProvider openidConnectProvider, Map<String, Object> tokenResponseBody) {
+    OpenidConnectToken findByEmailAddress(String emailAddress) {
+        OpenidConnectToken.byEmailAddress(emailAddress).get()
+    }
+
+    void deleteByEmailAddress(String emailAddress) {
+        OpenidConnectToken.byEmailAddress(emailAddress).deleteAll()
+    }
+
+    OpenidConnectToken createToken(OpenidConnectProvider openidConnectProvider, Map<String, Object> tokenResponseBody, String nonce) {
         new OpenidConnectToken(
             openidConnectProvider: openidConnectProvider,
             accessToken: tokenResponseBody.access_token,
@@ -52,6 +69,7 @@ class OpenidConnectTokenService {
             notBeforePolicy: tokenResponseBody['not-before-policy'] as Integer,
             sessionState: tokenResponseBody.session_state,
             scope: tokenResponseBody.scope,
+            nonce: nonce,
             )
     }
 
@@ -62,40 +80,81 @@ class OpenidConnectTokenService {
         openidConnectToken.save(validate: false, flush: true)
     }
 
-    boolean verifyIdToken(OpenidConnectToken token, AuthorizationResponseParameters authorizationResponseParameters) {
-        OpenidConnectIdTokenJwtVerifier verifier = new OpenidConnectIdTokenJwtVerifier(token, authorizationResponseParameters.nonce,
-                                                                                       authorizationResponseParameters.sessionState)
+    boolean verifyIdToken(OpenidConnectToken token, String lastKnownSessionState) {
+        OpenidConnectTokenJwtVerifier verifier = new OpenidConnectIdTokenJwtVerifier(token, lastKnownSessionState)
         try {
             verifier.verify()
             true
         } catch (JWTVerificationException exception) {
-            log.warn("Access token failed verification: ${exception.message}")
+            log.warn("Token failed verification: ${exception.message}")
             return false
         }
     }
 
-    boolean verifyIdTokenForUser(CatalogueUser catalogueUser) {
-        OpenidConnectToken token = findByCatalogueUser(catalogueUser)
-        OpenidConnectIdTokenJwtVerifier verifier = new OpenidConnectIdTokenJwtVerifier(token, null, null)
-
-        try {
-            verifier.verify()
-        } catch (JWTVerificationException exception) {
-            log.warn("Access token failed verification: ${exception.message}")
-            false
+    boolean hasRefreshTokenExpired(OpenidConnectToken token) {
+        if (token.decodedRefreshToken) {
+            hasJwtTokenExpired(token.decodedRefreshToken)
         }
-        true
+        log.warn('Non-JWT refresh tokens are not currently supported')
+        false
     }
 
-    void refreshToken() {
-        /*
-        grant_type : "refresh_token"
-        client_id
-        client_secret
-        refresh_token : the refresh token from the original request
+    boolean hasAccessTokenExpired(OpenidConnectToken token) {
+        if (token.decodedIdToken) {
+            return hasJwtTokenExpired(token.decodedIdToken)
+        }
+        log.warn('Non-JWT refresh tokens are not currently supported')
+        false
+    }
 
-        same process as loadToken but using these in the body
-         */
+    OpenidConnectToken refreshTokenByEmailAddress(String emailAddress) {
+        refreshToken(findByEmailAddress(emailAddress))
+    }
 
+    OpenidConnectToken refreshToken(OpenidConnectToken openidConnectToken) {
+        log.debug('Refreshing token for [{}]', openidConnectToken.catalogueUser.emailAddress)
+        OpenidConnectProvider provider = openidConnectToken.openidConnectProvider
+        Map<String, Object> responseBody = openidConnectProviderService.loadTokenFromOpenidConnectProvider(
+            provider,
+            provider.getAccessTokenRefreshRequestParameters(openidConnectToken.refreshToken)
+        )
+        if (!responseBody) {
+            log.warn("Failed to refresh access token for [${openidConnectToken.catalogueUser.emailAddress}]")
+            return null
+        }
+
+        if (responseBody.error) {
+            log.warn("Failed to refresh access token for [${openidConnectToken.catalogueUser.emailAddress}] because [${responseBody.error_description}]")
+            return null
+        }
+
+        String previousSessionState = openidConnectToken.sessionState
+        openidConnectToken.tap {
+            accessToken = responseBody.access_token
+            refreshToken = responseBody.refresh_token
+            idToken = responseBody.id_token
+            sessionState = responseBody.session_state
+        }
+
+        if (!verifyIdToken(openidConnectToken, previousSessionState)) {
+            log.warn("Failed to refresh access token for [${openidConnectToken.catalogueUser.emailAddress}] as validation on refreshed token failed")
+            return null
+        }
+        log.debug('Validating and saving refreshed token')
+        validateAndSave(openidConnectToken)
+        openidConnectToken
+    }
+
+    void storeDataIntoHttpSession(OpenidConnectToken openidConnectToken, HttpSession session){
+        session.setAttribute(OPEN_ID_AUTHENTICATION_SESSION_ATTRIBUTE_NAME, true)
+        session.setAttribute(ACCESS_EXPIRY_SESSION_ATTRIBUTE_NAME, openidConnectToken.getAccessTokenExpiry())
+        session.setAttribute(REFRESH_EXPIRY_SESSION_ATTRIBUTE_NAME, openidConnectToken.getRefreshTokenExpiry())
+    }
+
+    private boolean hasJwtTokenExpired(DecodedJWT token) {
+        Date expiresAt = token.expiresAt
+        Date now = new Date()
+        now = new Date((now.getTime() / 1000).toLong() * 1000) // truncate millis
+        return now.after(expiresAt)
     }
 }
