@@ -20,6 +20,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.gorm.mapping.MdmPluginAuthenticationOpenidConnectSchemaMappingContext
 
 import grails.plugins.Plugin
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean
 
 class MdmPluginAuthenticationOpenidConnectGrailsPlugin extends Plugin {
 
@@ -67,6 +68,9 @@ This plugin implements OpenID Connect integration.
     Closure doWithSpring() {
         {->
             mdmPluginAuthenticationOpenidConnectSchemaMappingContext MdmPluginAuthenticationOpenidConnectSchemaMappingContext
+            openidAccessHttpSessionListener(ServletListenerRegistrationBean) {
+                listener = ref('openidConnectAccessService')
+            }
         }
     }
 

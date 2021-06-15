@@ -1,5 +1,7 @@
 maurodatamapper:
     openidConnect:
+        session:
+            timeout: 10m
         google:
             enabled: false
         microsoft:

@@ -26,6 +26,8 @@ import uk.ac.ox.softeng.maurodatamapper.security.interceptor.SecurityPolicyManag
 
 import groovy.util.logging.Slf4j
 
+import javax.servlet.http.HttpSession
+
 import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectTokenService.*
 
 @Slf4j
@@ -43,7 +45,6 @@ class OpenidConnectAccessInterceptor implements SecurityPolicyManagerInterceptor
     }
 
     boolean before() {
-        checkSessionIsValid()
 
         if (sessionService.isAuthenticatedSession(session, session.id)) {
 
@@ -78,7 +79,7 @@ class OpenidConnectAccessInterceptor implements SecurityPolicyManagerInterceptor
         true
     }
 
-   private boolean logUserOut() {
+    private boolean logUserOut() {
         openidConnectTokenService.deleteByEmailAddress(sessionService.getSessionEmailAddress(session))
         authenticatingService.registerUserAsLoggedOut(session)
         unauthorised('Session has been invalidated')

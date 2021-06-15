@@ -26,18 +26,16 @@ import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
 
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
+import grails.core.GrailsApplication
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 
+import java.time.Duration
 import javax.servlet.http.HttpSession
 
 @Slf4j
 @Transactional
 class OpenidConnectTokenService {
-
-    static final String ACCESS_EXPIRY_SESSION_ATTRIBUTE_NAME='openidAccessExpiry'
-    static final String REFRESH_EXPIRY_SESSION_ATTRIBUTE_NAME='openidRefreshExpiry'
-    static final String OPEN_ID_AUTHENTICATION_SESSION_ATTRIBUTE_NAME='openidAuthentication'
 
     OpenidConnectProviderService openidConnectProviderService
 
@@ -145,10 +143,11 @@ class OpenidConnectTokenService {
         openidConnectToken
     }
 
-    void storeDataIntoHttpSession(OpenidConnectToken openidConnectToken, HttpSession session){
+    void storeDataIntoHttpSession(OpenidConnectToken openidConnectToken, HttpSession session, Duration sessionTimeoutOverride = null){
         session.setAttribute(OPEN_ID_AUTHENTICATION_SESSION_ATTRIBUTE_NAME, true)
         session.setAttribute(ACCESS_EXPIRY_SESSION_ATTRIBUTE_NAME, openidConnectToken.getAccessTokenExpiry())
         session.setAttribute(REFRESH_EXPIRY_SESSION_ATTRIBUTE_NAME, openidConnectToken.getRefreshTokenExpiry())
+        if(sessionTimeoutOverride != null) session.setMaxInactiveInterval(sessionTimeoutOverride.seconds.toInteger())
     }
 
     private boolean hasJwtTokenExpired(DecodedJWT token) {

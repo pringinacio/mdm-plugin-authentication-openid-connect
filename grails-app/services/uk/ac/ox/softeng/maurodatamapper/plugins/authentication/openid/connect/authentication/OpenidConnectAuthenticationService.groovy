@@ -27,9 +27,12 @@ import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUserService
 import uk.ac.ox.softeng.maurodatamapper.security.authentication.AuthenticationSchemeService
 
+import grails.core.GrailsApplication
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 
+import java.time.Duration
+import java.time.format.DateTimeParseException
 import javax.servlet.http.HttpSession
 
 /**
@@ -45,6 +48,7 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
     OpenidConnectTokenService openidConnectTokenService
 
     CatalogueUserService catalogueUserService
+    GrailsApplication grailsApplication
 
     @Override
     String getName() {
@@ -122,8 +126,15 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
 
         token.createdBy = user.emailAddress
         token.catalogueUser = user
+
+        Duration timeoutOverride = null
+        try {
+            timeoutOverride = Duration.parse("pt${grailsApplication.config.maurodatamapper.openidConnect.session.timeout}")
+            log.debug('Overriding standard session timeout to {}', timeoutOverride)
+        } catch (DateTimeParseException ignored) {}
+
         openidConnectTokenService.validateAndSave(token)
-        openidConnectTokenService.storeDataIntoHttpSession(token, authenticationInformation.session as HttpSession)
+        openidConnectTokenService.storeDataIntoHttpSession(token, authenticationInformation.session as HttpSession, timeoutOverride)
 
         user
     }

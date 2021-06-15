@@ -17,7 +17,9 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
+import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
+import uk.ac.ox.softeng.maurodatamapper.core.session.SessionService
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectToken
@@ -25,6 +27,7 @@ import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUserService
 import uk.ac.ox.softeng.maurodatamapper.test.functional.BaseFunctionalSpec
 
+import grails.core.GrailsApplication
 import grails.gorm.transactions.Transactional
 import grails.testing.mixin.integration.Integration
 import grails.testing.spock.OnceBefore
@@ -35,10 +38,12 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.FormElement
 import spock.lang.Ignore
 
+import javax.servlet.ServletContext
+import javax.servlet.http.HttpSession
+
 import static io.micronaut.http.HttpStatus.NOT_FOUND
 import static io.micronaut.http.HttpStatus.OK
 import static io.micronaut.http.HttpStatus.UNAUTHORIZED
-
 /**
  *
  * <pre>
@@ -54,6 +59,9 @@ import static io.micronaut.http.HttpStatus.UNAUTHORIZED
 class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
     CatalogueUserService catalogueUserService
+    SessionService sessionService
+    ServletContext servletContext
+    GrailsApplication grailsApplication
 
     @OnceBefore
     @Transactional
@@ -303,7 +311,31 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
         then: 'session timed out and unauthorised'
         verifyResponse(OK, response)
+    }
 
+    void 'KEYCLOAK12 - test access after session invalidated'() {
+
+        when: 'not logged in'
+        GET("folders/${folderId}", MAP_ARG, true)
+
+        then: 'folder is not available'
+        verifyResponse(NOT_FOUND, response)
+
+        when: 'logged in'
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak('mdm-admin', 'mdm-admin')
+        POST('login?scheme=openIdConnect', authorizeResponse)
+        verifyResponse(OK, response)
+
+        and: 'timeout session'
+        HttpSession session = servletContext.getAttribute(SessionService.CONTEXT_PROPERTY_NAME).values().find{it.getAttribute('emailAddress') == StandardEmailAddress.ADMIN}
+        session.setMaxInactiveInterval(2)
+
+        and: 'getting folder'
+        sleep(5)
+        GET("folders/${folderId}", MAP_ARG, true)
+
+        then: 'session timed out and unauthorised'
+        verifyResponse(OK, response)
     }
 
     @Ignore('Manual testing only')
