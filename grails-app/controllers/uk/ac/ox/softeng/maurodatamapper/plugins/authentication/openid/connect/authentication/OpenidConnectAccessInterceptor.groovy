@@ -18,6 +18,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.authentication
 
 import uk.ac.ox.softeng.maurodatamapper.core.session.SessionService
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access.OpenidConnectAccessService
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectToken
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectTokenService
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManagerInterceptor
@@ -28,12 +29,13 @@ import groovy.util.logging.Slf4j
 
 import javax.servlet.http.HttpSession
 
-import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectTokenService.*
+import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access.OpenidConnectAccessService.*
 
 @Slf4j
 class OpenidConnectAccessInterceptor implements SecurityPolicyManagerInterceptor {
 
     OpenidConnectTokenService openidConnectTokenService
+    OpenidConnectAccessService openidConnectAccessService
     AuthenticatingService authenticatingService
 
     SessionService sessionService
@@ -72,7 +74,7 @@ class OpenidConnectAccessInterceptor implements SecurityPolicyManagerInterceptor
                     return logUserOut()
                 }
 
-                openidConnectTokenService.storeDataIntoHttpSession(refreshedOpenidToken, session)
+                openidConnectAccessService.storeTokenDataIntoHttpSession(refreshedOpenidToken, session)
                 log.debug('Token has been refreshed and saved')
             }
         }

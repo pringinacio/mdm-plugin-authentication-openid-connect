@@ -143,13 +143,6 @@ class OpenidConnectTokenService {
         openidConnectToken
     }
 
-    void storeDataIntoHttpSession(OpenidConnectToken openidConnectToken, HttpSession session, Duration sessionTimeoutOverride = null){
-        session.setAttribute(OPEN_ID_AUTHENTICATION_SESSION_ATTRIBUTE_NAME, true)
-        session.setAttribute(ACCESS_EXPIRY_SESSION_ATTRIBUTE_NAME, openidConnectToken.getAccessTokenExpiry())
-        session.setAttribute(REFRESH_EXPIRY_SESSION_ATTRIBUTE_NAME, openidConnectToken.getRefreshTokenExpiry())
-        if(sessionTimeoutOverride != null) session.setMaxInactiveInterval(sessionTimeoutOverride.seconds.toInteger())
-    }
-
     private boolean hasJwtTokenExpired(DecodedJWT token) {
         Date expiresAt = token.expiresAt
         Date now = new Date()

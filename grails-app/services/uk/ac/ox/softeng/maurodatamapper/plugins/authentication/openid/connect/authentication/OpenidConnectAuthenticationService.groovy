@@ -18,6 +18,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.authentication
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access.OpenidConnectAccessService
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.rest.transport.AuthorizationResponseParameters
@@ -46,6 +47,7 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
 
     OpenidConnectProviderService openidConnectProviderService
     OpenidConnectTokenService openidConnectTokenService
+    OpenidConnectAccessService openidConnectAccessService
 
     CatalogueUserService catalogueUserService
     GrailsApplication grailsApplication
@@ -134,7 +136,7 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
         } catch (DateTimeParseException ignored) {}
 
         openidConnectTokenService.validateAndSave(token)
-        openidConnectTokenService.storeDataIntoHttpSession(token, authenticationInformation.session as HttpSession, timeoutOverride)
+        openidConnectAccessService.storeTokenDataIntoHttpSession(token, authenticationInformation.session as HttpSession, timeoutOverride)
 
         user
     }

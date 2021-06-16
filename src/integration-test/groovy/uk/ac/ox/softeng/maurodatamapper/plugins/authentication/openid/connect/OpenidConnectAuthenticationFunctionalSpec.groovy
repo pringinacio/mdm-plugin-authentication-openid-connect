@@ -38,6 +38,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.FormElement
 import spock.lang.Ignore
 
+import java.time.Duration
 import javax.servlet.ServletContext
 import javax.servlet.http.HttpSession
 
@@ -204,6 +205,12 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
         then:
         verifyResponse(OK, response)
+
+        when: 'grab the session created'
+        HttpSession session = servletContext.getAttribute(SessionService.CONTEXT_PROPERTY_NAME).values().find{it.getAttribute('emailAddress') == StandardEmailAddress.ADMIN}
+
+        then: 'session timeout has been overridden to 24hrs which is the default for this plugin'
+        session.maxInactiveInterval == Duration.ofHours(24).seconds
     }
 
     void 'KEYCLOAK07 - test logging in with valid authentication code and parameters with non-existent user'() {
@@ -331,11 +338,11 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         session.setMaxInactiveInterval(2)
 
         and: 'getting folder'
-        sleep(5)
+        sleep(5000)
         GET("folders/${folderId}", MAP_ARG, true)
 
-        then: 'session timed out and unauthorised'
-        verifyResponse(OK, response)
+        then: 'session timed out folder is not available\''
+        verifyResponse(NOT_FOUND, response)
     }
 
     @Ignore('Manual testing only')

@@ -1,7 +1,10 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access
 
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectToken
+
 import groovy.util.logging.Slf4j
 
+import java.time.Duration
 import javax.servlet.ServletContext
 import javax.servlet.http.HttpSession
 import javax.servlet.http.HttpSessionEvent
@@ -23,7 +26,15 @@ class OpenidConnectAccessService implements HttpSessionListener{
      */
     @Override
     void sessionDestroyed(HttpSessionEvent se) {
-        if(se.session.getAttribute())
-        log.info('Session destroyed')
+        if(se.session.getAttribute(OPEN_ID_AUTHENTICATION_SESSION_ATTRIBUTE_NAME)) {
+            log.info('Openid Connect session destroyed')
+        }
+    }
+
+    void storeTokenDataIntoHttpSession(OpenidConnectToken openidConnectToken, HttpSession session, Duration sessionTimeoutOverride = null){
+        session.setAttribute(OPEN_ID_AUTHENTICATION_SESSION_ATTRIBUTE_NAME, true)
+        session.setAttribute(ACCESS_EXPIRY_SESSION_ATTRIBUTE_NAME, openidConnectToken.getAccessTokenExpiry())
+        session.setAttribute(REFRESH_EXPIRY_SESSION_ATTRIBUTE_NAME, openidConnectToken.getRefreshTokenExpiry())
+        if(sessionTimeoutOverride != null) session.setMaxInactiveInterval(sessionTimeoutOverride.seconds.toInteger())
     }
 }
