@@ -47,7 +47,6 @@ class OpenidConnectIdTokenJwtVerifier extends OpenidConnectTokenJwtVerifier {
     Verification buildVerification() {
         Verification verification = super.buildVerification()
             .withClaim('nonce', nonce)
-            .withClaim('session_state', lastKnownSessionState)
             .withClaim('session_state', tokenSessionState)
 
 
@@ -75,6 +74,10 @@ class OpenidConnectIdTokenJwtVerifier extends OpenidConnectTokenJwtVerifier {
             Date agedDate = new Date(decodedToken.getClaim('auth_time').asDate().getTime() + (maxAgeOfAuthentication * 1000))
             if (ageOfAuthentication > maxAgeOfAuthentication) throw new JWTVerificationException("Authentication code can't be used after ${agedDate}")
         }
+
+        // Addtl
+        if (tokenSessionState != lastKnownSessionState) throw new JWTVerificationException('Token session_state must match previous session_state')
+
     }
 
 }
