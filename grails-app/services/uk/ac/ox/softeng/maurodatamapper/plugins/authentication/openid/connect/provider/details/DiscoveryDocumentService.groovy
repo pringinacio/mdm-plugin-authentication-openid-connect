@@ -58,7 +58,7 @@ class DiscoveryDocumentService {
         document.authorizationEndpoint = data.authorization_endpoint
         document.tokenEndpoint = data.token_endpoint
         document.userinfoEndpoint = data.userinfo_endpoint
-        document.endSessionEndpoint = data.end_session_endpoint
+        document.endSessionEndpoint = data.end_session_endpoint ?:data.revocation_endpoint
         document.jwksUri = data.jwks_uri
         document
     }

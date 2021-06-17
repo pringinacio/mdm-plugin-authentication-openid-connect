@@ -15,7 +15,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.authentication
+package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access
 
 import uk.ac.ox.softeng.maurodatamapper.core.session.SessionService
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access.OpenidConnectAccessService
@@ -48,7 +48,7 @@ class OpenidConnectAccessInterceptor implements SecurityPolicyManagerInterceptor
 
     boolean before() {
 
-        if (sessionService.isAuthenticatedSession(session, session.id)) {
+        if (sessionService.isAuthenticatedSession(session.id)) {
 
             if (session.getAttribute(OPEN_ID_AUTHENTICATION_SESSION_ATTRIBUTE_NAME)) {
                 log.debug('User has authenticated using openid, need to check access is still valid')
@@ -82,7 +82,7 @@ class OpenidConnectAccessInterceptor implements SecurityPolicyManagerInterceptor
     }
 
     private boolean logUserOut() {
-        openidConnectTokenService.deleteBySessionId(session.id)
+        // Logging out the user will destroy their session which will call our session hook
         authenticatingService.registerUserAsLoggedOut(session)
         unauthorised('Session has been invalidated')
     }

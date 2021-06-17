@@ -89,6 +89,28 @@ class OpenidConnectProviderService {
         loadMapFromEndpoint(client, request)
     }
 
+    boolean revokeTokenForOpenidConnectProvider(OpenidConnectProvider openidConnectProvider, Map<String, String> requestBody) {
+        log.debug('Revoking token from OC provider')
+        URL endSessionEndpoint = UriBuilder.of(openidConnectProvider.discoveryDocument.endSessionEndpoint).build().toURL()
+
+        HttpClient client = HttpClient.create(getClientHostUrl(endSessionEndpoint))
+        HttpRequest request = HttpRequest.POST(endSessionEndpoint.path, requestBody)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
+            .accept(MediaType.APPLICATION_JSON_TYPE)
+
+        try {
+            client.toBlocking().exchange(request, Argument.mapOf(String, Object)).body()
+            false
+        } catch (HttpClientResponseException e) {
+            switch (e.status) {
+                case HttpStatus.NO_CONTENT:
+                    return true
+                default:
+                    false
+            }
+        }
+    }
+
     private Map<String, Object> loadMapFromEndpoint(HttpClient httpClient, HttpRequest httpRequest) {
         try {
             httpClient.toBlocking().exchange(httpRequest, Argument.mapOf(String, Object)).body()

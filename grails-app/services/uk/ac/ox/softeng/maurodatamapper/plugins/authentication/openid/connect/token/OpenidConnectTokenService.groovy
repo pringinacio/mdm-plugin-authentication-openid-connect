@@ -18,6 +18,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
+import uk.ac.ox.softeng.maurodatamapper.core.session.SessionService
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.jwt.OpenidConnectIdTokenJwtVerifier
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.jwt.OpenidConnectTokenJwtVerifier
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
@@ -55,8 +56,8 @@ class OpenidConnectTokenService {
         OpenidConnectToken.findBySessionId(sessionId)
     }
 
-    OpenidConnectToken deleteBySessionId(String sessionId) {
-        findBySessionId(sessionId).delete()
+    void deleteBySessionId(String sessionId) {
+        delete(findBySessionId(sessionId))
     }
 
     void deleteAllByEmailAddress(String emailAddress) {
@@ -98,28 +99,12 @@ class OpenidConnectTokenService {
         }
     }
 
-    boolean hasRefreshTokenExpired(OpenidConnectToken token) {
-        if (token.decodedRefreshToken) {
-            hasJwtTokenExpired(token.decodedRefreshToken)
-        }
-        log.warn('Non-JWT refresh tokens are not currently supported')
-        false
-    }
-
-    boolean hasAccessTokenExpired(OpenidConnectToken token) {
-        if (token.decodedIdToken) {
-            return hasJwtTokenExpired(token.decodedIdToken)
-        }
-        log.warn('Non-JWT refresh tokens are not currently supported')
-        false
-    }
-
     OpenidConnectToken refreshTokenBySessionId(String sessionId) {
         refreshToken(findBySessionId(sessionId))
     }
 
     OpenidConnectToken refreshToken(OpenidConnectToken openidConnectToken) {
-        log.debug('Refreshing token for [{}]', openidConnectToken.catalogueUser.emailAddress)
+        log.debug('Refreshing token for [{}:{}]',openidConnectToken.sessionId, openidConnectToken.catalogueUser.emailAddress)
         OpenidConnectProvider provider = openidConnectToken.openidConnectProvider
         Map<String, Object> responseBody = openidConnectProviderService.loadTokenFromOpenidConnectProvider(
             provider,
@@ -150,6 +135,27 @@ class OpenidConnectTokenService {
         log.debug('Validating and saving refreshed token')
         validateAndSave(openidConnectToken)
         openidConnectToken
+    }
+
+    void revokeTokenBySessionId(String sessionId) {
+        revokeToken(findBySessionId(sessionId))
+    }
+
+    void revokeToken(OpenidConnectToken openidConnectToken) {
+        log.debug('Revoking token for [{}:{}]', openidConnectToken.sessionId, openidConnectToken.catalogueUser.emailAddress)
+        OpenidConnectProvider provider = openidConnectToken.openidConnectProvider
+        Boolean revoked = openidConnectProviderService.revokeTokenForOpenidConnectProvider(
+            provider,
+            provider.getAccessTokenRefreshRequestParameters(openidConnectToken.refreshToken)
+        )
+
+        if (!revoked) {
+            // Log if we couldnt revoke but still remove the token from the database as this will stop further access
+            log.warn("Failed to revoke access token for [${openidConnectToken.catalogueUser.emailAddress}]")
+        }
+
+        log.debug('Removing stored token')
+        delete(openidConnectToken)
     }
 
     private boolean hasJwtTokenExpired(DecodedJWT token) {

@@ -129,6 +129,11 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
     }
 
     @Transactional
+    void getToken(String sessionId) {
+        OpenidConnectToken.findBySessionId(sessionId)
+    }
+
+    @Transactional
     void updateKeycloakProviderMaxAge(Long maxAge) {
         OpenidConnectProvider provider = OpenidConnectProvider.findByLabel(BootstrapModels.KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME)
         provider.authorizationEndpointParameters.maxAge = maxAge
@@ -403,6 +408,36 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
         and: 'getting folder'
         sleep(3000)
+        GET("folders/${folderId}", MAP_ARG, true)
+
+        then: 'session timed out folder is not available\''
+        verifyResponse(NOT_FOUND, response)
+    }
+
+    void 'KEYCLOAK14 - test access after logout'() {
+
+        when: 'not logged in'
+        GET("folders/${folderId}", MAP_ARG, true)
+
+        then: 'folder is not available'
+        verifyResponse(NOT_FOUND, response)
+
+        when: 'logged in'
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak('mdm-admin', 'mdm-admin')
+        POST('login?scheme=openIdConnect', authorizeResponse)
+        verifyResponse(OK, response)
+        HttpSession session = getSession(StandardEmailAddress.ADMIN)
+
+        then:
+        session
+
+        and: 'logging out'
+        PUT('logout',[:])
+
+        then:
+        !getToken(session.id)
+
+        and: 'getting folder'
         GET("folders/${folderId}", MAP_ARG, true)
 
         then: 'session timed out folder is not available\''

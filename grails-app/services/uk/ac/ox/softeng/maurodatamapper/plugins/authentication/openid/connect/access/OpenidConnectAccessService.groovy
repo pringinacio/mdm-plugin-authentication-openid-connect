@@ -1,6 +1,10 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access
 
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectToken
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectTokenService
+import uk.ac.ox.softeng.maurodatamapper.security.authentication.AuthenticatingService
 
 import groovy.util.logging.Slf4j
 
@@ -20,15 +24,19 @@ class OpenidConnectAccessService implements HttpSessionListener{
     static final String REFRESH_EXPIRY_SESSION_ATTRIBUTE_NAME='openidRefreshExpiry'
     static final String OPEN_ID_AUTHENTICATION_SESSION_ATTRIBUTE_NAME='openidAuthentication'
 
+    OpenidConnectTokenService openidConnectTokenService
+    OpenidConnectProviderService openidConnectProviderService
+
     /**
-     * Destruction of the session should result in us revoking any access tokens
+     * Destruction of the session should result in us revoking any access tokens and removing them from the backend
      * @param se
      */
     @Override
     void sessionDestroyed(HttpSessionEvent se) {
         if(se.session.getAttribute(OPEN_ID_AUTHENTICATION_SESSION_ATTRIBUTE_NAME)) {
-            log.warn('Openid Connect session {} destroyed', se.session.id)
-
+            // We should try to revoke the token to the provider which will also remove the token stored in the backedn
+            openidConnectTokenService.revokeTokenBySessionId(se.session.id)
+            log.debug('Openid Connect session {} destroyed', se.session.id)
         }
     }
 
