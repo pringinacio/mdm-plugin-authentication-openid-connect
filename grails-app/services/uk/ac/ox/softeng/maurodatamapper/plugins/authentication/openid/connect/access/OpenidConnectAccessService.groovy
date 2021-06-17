@@ -27,7 +27,8 @@ class OpenidConnectAccessService implements HttpSessionListener{
     @Override
     void sessionDestroyed(HttpSessionEvent se) {
         if(se.session.getAttribute(OPEN_ID_AUTHENTICATION_SESSION_ATTRIBUTE_NAME)) {
-            log.info('Openid Connect session destroyed')
+            log.warn('Openid Connect session {} destroyed', se.session.id)
+
         }
     }
 

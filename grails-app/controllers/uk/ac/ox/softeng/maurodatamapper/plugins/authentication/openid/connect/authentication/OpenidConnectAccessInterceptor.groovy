@@ -43,7 +43,7 @@ class OpenidConnectAccessInterceptor implements SecurityPolicyManagerInterceptor
     OpenidConnectAccessInterceptor() {
         match(uri: '/**/api/**/')
         // We want to check access before we try to load the usersecuritypolicy manager
-        order = UserSecurityPolicyManagerInterceptor.ORDER - 2000
+        order = UserSecurityPolicyManagerInterceptor.ORDER - 5000
     }
 
     boolean before() {
@@ -68,7 +68,7 @@ class OpenidConnectAccessInterceptor implements SecurityPolicyManagerInterceptor
                 }
 
                 log.debug('Refresh token still valid')
-                OpenidConnectToken refreshedOpenidToken = openidConnectTokenService.refreshTokenByEmailAddress(sessionService.getSessionEmailAddress(session))
+                OpenidConnectToken refreshedOpenidToken = openidConnectTokenService.refreshTokenBySessionId(session.id)
                 if (!refreshedOpenidToken) {
                     log.warn('Token expired & refresh token failed, user logged out')
                     return logUserOut()
@@ -82,7 +82,7 @@ class OpenidConnectAccessInterceptor implements SecurityPolicyManagerInterceptor
     }
 
     private boolean logUserOut() {
-        openidConnectTokenService.deleteByEmailAddress(sessionService.getSessionEmailAddress(session))
+        openidConnectTokenService.deleteBySessionId(session.id)
         authenticatingService.registerUserAsLoggedOut(session)
         unauthorised('Session has been invalidated')
     }

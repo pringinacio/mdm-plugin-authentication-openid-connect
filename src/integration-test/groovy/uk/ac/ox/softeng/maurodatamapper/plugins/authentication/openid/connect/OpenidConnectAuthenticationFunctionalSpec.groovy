@@ -20,6 +20,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.session.SessionService
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access.OpenidConnectAccessService
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectToken
@@ -45,6 +46,7 @@ import javax.servlet.http.HttpSession
 import static io.micronaut.http.HttpStatus.NOT_FOUND
 import static io.micronaut.http.HttpStatus.OK
 import static io.micronaut.http.HttpStatus.UNAUTHORIZED
+
 /**
  *
  * <pre>
@@ -73,6 +75,12 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
     @Transactional
     void deleteUser(String id) {
         catalogueUserService.get(id).delete(flush: true)
+    }
+
+    def cleanup(){
+        List<HttpSession> sessions = new ArrayList<>(servletContext.getAttribute(SessionService.CONTEXT_PROPERTY_NAME).values())
+        log.warn('Destroying {} left over sessions', sessions.size())
+        sessions.each {it.invalidate()}
     }
 
     @Transactional
@@ -107,10 +115,16 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
     }
 
     @Transactional
-    void removeRefreshTokenForUserToken(String emailAddress) {
+    void updateRefreshTokenForUserToken(String emailAddress, Long expiresIn) {
         OpenidConnectToken token = OpenidConnectToken.byEmailAddress(emailAddress).get()
-        token.refreshToken = null
-        token.refreshExpiresIn = null
+        token.refreshExpiresIn = expiresIn
+        token.save(flush: true)
+    }
+
+    @Transactional
+    void updateAccessTokenForUserToken(String emailAddress, Long expiresIn) {
+        OpenidConnectToken token = OpenidConnectToken.byEmailAddress(emailAddress).get()
+        token.expiresIn = expiresIn
         token.save(flush: true)
     }
 
@@ -207,7 +221,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         verifyResponse(OK, response)
 
         when: 'grab the session created'
-        HttpSession session = servletContext.getAttribute(SessionService.CONTEXT_PROPERTY_NAME).values().find{it.getAttribute('emailAddress') == StandardEmailAddress.ADMIN}
+        HttpSession session = servletContext.getAttribute(SessionService.CONTEXT_PROPERTY_NAME).values().find {it.getAttribute('emailAddress') == StandardEmailAddress.ADMIN}
 
         then: 'session timeout has been overridden to 24hrs which is the default for this plugin'
         session.maxInactiveInterval == Duration.ofHours(24).seconds
@@ -283,10 +297,17 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         verifyResponse(OK, response)
 
         and: 'removing refresh token'
-        removeRefreshTokenForUserToken('admin@maurodatamapper.com')
+        updateRefreshTokenForUserToken('admin@maurodatamapper.com', 1)
+        HttpSession session = getSession(StandardEmailAddress.ADMIN)
+        session.removeAttribute(OpenidConnectAccessService.REFRESH_EXPIRY_SESSION_ATTRIBUTE_NAME)
+
+        and: 'expiring access token'
+        updateAccessTokenForUserToken('admin@maurodatamapper.com', 1)
+        Date date = getExpiredTime()
+        log.debug('Overriding expiry time to {} for session {}', date, session.id)
+        session.setAttribute(OpenidConnectAccessService.ACCESS_EXPIRY_SESSION_ATTRIBUTE_NAME, date)
 
         and: 'getting folder'
-        sleep(65000)
         GET("folders/${folderId}", MAP_ARG, true)
 
         then: 'session timed out and unauthorised'
@@ -299,7 +320,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         verifyResponse(NOT_FOUND, response)
     }
 
-    void 'KEYCLOAK11 - test access after timeout with refresh token'() {
+    void 'KEYCLOAK11 - test access after timeout with expired refresh token'() {
 
         when: 'not logged in'
         GET("folders/${folderId}", MAP_ARG, true)
@@ -312,15 +333,56 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         POST('login?scheme=openIdConnect', authorizeResponse)
         verifyResponse(OK, response)
 
+        and: 'expiring refresh token'
+        // now
+        updateRefreshTokenForUserToken('admin@maurodatamapper.com', 1)
+        HttpSession session = getSession(StandardEmailAddress.ADMIN)
+        session.setAttribute(OpenidConnectAccessService.REFRESH_EXPIRY_SESSION_ATTRIBUTE_NAME, getExpiredTime())
+
+        and: 'expiring access token'
+        updateAccessTokenForUserToken('admin@maurodatamapper.com', 1)
+        session.setAttribute(OpenidConnectAccessService.ACCESS_EXPIRY_SESSION_ATTRIBUTE_NAME, getExpiredTime())
+
         and: 'getting folder'
-        sleep(65000)
+        GET("folders/${folderId}", MAP_ARG, true)
+
+        then: 'session timed out and unauthorised'
+        verifyResponse(UNAUTHORIZED, response)
+
+        when: 'getting folder'
+        GET("folders/${folderId}", MAP_ARG, true)
+
+        then: 'expected response for unlogged in user'
+        verifyResponse(NOT_FOUND, response)
+    }
+
+    void 'KEYCLOAK12 - test access after timeout with refresh token'() {
+
+        when: 'not logged in'
+        GET("folders/${folderId}", MAP_ARG, true)
+
+        then: 'folder is not available'
+        verifyResponse(NOT_FOUND, response)
+
+        when: 'logged in'
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak('mdm-admin', 'mdm-admin')
+        POST('login?scheme=openIdConnect', authorizeResponse)
+        verifyResponse(OK, response)
+
+        and: 'expiring access token'
+        HttpSession session = getSession(StandardEmailAddress.ADMIN)
+        updateAccessTokenForUserToken('admin@maurodatamapper.com', 1)
+        // now
+        session.setAttribute(OpenidConnectAccessService.ACCESS_EXPIRY_SESSION_ATTRIBUTE_NAME, getExpiredTime())
+
+        and: 'getting folder'
         GET("folders/${folderId}", MAP_ARG, true)
 
         then: 'session timed out and unauthorised'
         verifyResponse(OK, response)
     }
 
-    void 'KEYCLOAK12 - test access after session invalidated'() {
+    void 'KEYCLOAK13 - test access after session invalidated'() {
 
         when: 'not logged in'
         GET("folders/${folderId}", MAP_ARG, true)
@@ -334,11 +396,13 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         verifyResponse(OK, response)
 
         and: 'timeout session'
-        HttpSession session = servletContext.getAttribute(SessionService.CONTEXT_PROPERTY_NAME).values().find{it.getAttribute('emailAddress') == StandardEmailAddress.ADMIN}
+        // Usually we have a session timeout of 24hrs which is not testable so we reduce the session timeout to 2 seconds which will result in the server destroying our
+        // session for us
+        HttpSession session = getSession(StandardEmailAddress.ADMIN)
         session.setMaxInactiveInterval(2)
 
         and: 'getting folder'
-        sleep(5000)
+        sleep(3000)
         GET("folders/${folderId}", MAP_ARG, true)
 
         then: 'session timed out folder is not available\''
@@ -448,5 +512,14 @@ https://accounts.google.com/o/oauth2/v2/auth?scope=openid+email&response_type=co
             redirect_uri           : 'https://jenkins.cs.ox.ac.uk',
             nonce                  : nonce
         ]
+    }
+
+    HttpSession getSession(String emailAddress) {
+        servletContext.getAttribute(SessionService.CONTEXT_PROPERTY_NAME).values().find {it.getAttribute('emailAddress') == emailAddress}
+    }
+
+    Date getExpiredTime(){
+        Date now = new Date()
+        new Date(now.getTime() - 100000)
     }
 }

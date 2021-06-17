@@ -72,7 +72,7 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
         log.info('Attempt to authenticate system using Openid Connect')
 
         AuthorizationResponseParameters authorizationResponseParameters = new AuthorizationResponseParameters(authenticationInformation)
-
+        HttpSession session = authenticationInformation.session as HttpSession
 
         OpenidConnectProvider openidConnectProvider = openidConnectProviderService.get(authorizationResponseParameters.openidConnectProviderId)
 
@@ -98,7 +98,7 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
             return null
         }
 
-        OpenidConnectToken token = openidConnectTokenService.createToken(openidConnectProvider, responseBody, authorizationResponseParameters.nonce)
+        OpenidConnectToken token = openidConnectTokenService.createToken(openidConnectProvider, responseBody, authorizationResponseParameters.nonce, session.id)
 
         if (!openidConnectTokenService.verifyIdToken(token, authorizationResponseParameters.sessionState)) {
             return null
@@ -136,7 +136,7 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
         } catch (DateTimeParseException ignored) {}
 
         openidConnectTokenService.validateAndSave(token)
-        openidConnectAccessService.storeTokenDataIntoHttpSession(token, authenticationInformation.session as HttpSession, timeoutOverride)
+        openidConnectAccessService.storeTokenDataIntoHttpSession(token,session , timeoutOverride)
 
         user
     }

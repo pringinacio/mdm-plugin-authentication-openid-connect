@@ -43,21 +43,30 @@ class OpenidConnectTokenService {
         openidConnectToken.delete(flush: true)
     }
 
-    OpenidConnectToken findByCatalogueUser(CatalogueUser catalogueUser) {
-        OpenidConnectToken.findByCatalogueUser(catalogueUser)
+    List<OpenidConnectToken> findAllByCatalogueUser(CatalogueUser catalogueUser) {
+        OpenidConnectToken.findAllByCatalogueUser(catalogueUser)
     }
 
-    OpenidConnectToken findByEmailAddress(String emailAddress) {
-        OpenidConnectToken.byEmailAddress(emailAddress).get()
+    List<OpenidConnectToken> findAllByEmailAddress(String emailAddress) {
+        OpenidConnectToken.byEmailAddress(emailAddress).list()
     }
 
-    void deleteByEmailAddress(String emailAddress) {
+    OpenidConnectToken findBySessionId(String sessionId) {
+        OpenidConnectToken.findBySessionId(sessionId)
+    }
+
+    OpenidConnectToken deleteBySessionId(String sessionId) {
+        findBySessionId(sessionId).delete()
+    }
+
+    void deleteAllByEmailAddress(String emailAddress) {
         OpenidConnectToken.byEmailAddress(emailAddress).deleteAll()
     }
 
-    OpenidConnectToken createToken(OpenidConnectProvider openidConnectProvider, Map<String, Object> tokenResponseBody, String nonce) {
+    OpenidConnectToken createToken(OpenidConnectProvider openidConnectProvider, Map<String, Object> tokenResponseBody, String nonce, String sessionId) {
         new OpenidConnectToken(
             openidConnectProvider: openidConnectProvider,
+            sessionId: sessionId,
             accessToken: tokenResponseBody.access_token,
             expiresIn: tokenResponseBody.expires_in as Integer,
             refreshExpiresIn: tokenResponseBody.refresh_expires_in as Integer,
@@ -105,8 +114,8 @@ class OpenidConnectTokenService {
         false
     }
 
-    OpenidConnectToken refreshTokenByEmailAddress(String emailAddress) {
-        refreshToken(findByEmailAddress(emailAddress))
+    OpenidConnectToken refreshTokenBySessionId(String sessionId) {
+        refreshToken(findBySessionId(sessionId))
     }
 
     OpenidConnectToken refreshToken(OpenidConnectToken openidConnectToken) {

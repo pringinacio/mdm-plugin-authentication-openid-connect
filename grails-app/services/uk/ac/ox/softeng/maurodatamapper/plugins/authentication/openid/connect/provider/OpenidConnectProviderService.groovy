@@ -66,7 +66,7 @@ class OpenidConnectProviderService {
 
 
     Map<String, Object> loadTokenFromOpenidConnectProvider(OpenidConnectProvider openidConnectProvider, Map<String, String> requestBody) {
-        log.info('Loading token from OC provider')
+        log.debug('Loading token from OC provider')
         URL tokenEndpoint = UriBuilder.of(openidConnectProvider.discoveryDocument.tokenEndpoint).build().toURL()
 
         HttpClient client = HttpClient.create(getClientHostUrl(tokenEndpoint))
@@ -79,7 +79,7 @@ class OpenidConnectProviderService {
 
 
     Map<String, Object> loadUserInfoFromOpenidConnectProvider(OpenidConnectProvider openidConnectProvider, String accessToken) {
-        log.info('Loading user info from OC provider')
+        log.debug('Loading user info from OC provider')
         URL userInfoEndpoint = UriBuilder.of(openidConnectProvider.discoveryDocument.userinfoEndpoint).build().toURL()
 
         HttpClient client = HttpClient.create(getClientHostUrl(userInfoEndpoint))

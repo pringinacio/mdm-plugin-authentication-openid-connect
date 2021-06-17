@@ -31,6 +31,7 @@ class OpenidConnectToken implements CreatorAware {
 
     UUID id
     CatalogueUser catalogueUser
+    String sessionId
     String idToken
     String accessToken
     String refreshToken
@@ -42,10 +43,11 @@ class OpenidConnectToken implements CreatorAware {
     String tokenType
     OpenidConnectProvider openidConnectProvider
     String nonce
+    //TODO generate from sessionid to ensure unique against session to stop replay attacks
     JWT jwt = new JWT()
 
     static constraints = {
-        catalogueUser unique: true
+        sessionId blank: false, unique: 'catalogueUser'
         idToken blank: false
         accessToken blank: false
         refreshToken blank: false, nullable: true
@@ -80,11 +82,11 @@ class OpenidConnectToken implements CreatorAware {
         getDecodedIdToken().getClaim(name)
     }
 
-    Date getAccessTokenExpiry(){
+    Date getAccessTokenExpiry() {
         decodedIdToken.expiresAt
     }
 
-    Date getRefreshTokenExpiry(){
+    Date getRefreshTokenExpiry() {
         decodedRefreshToken?.expiresAt
     }
 
