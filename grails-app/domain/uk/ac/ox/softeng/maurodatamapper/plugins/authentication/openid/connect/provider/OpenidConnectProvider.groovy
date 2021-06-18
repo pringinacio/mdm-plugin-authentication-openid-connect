@@ -92,9 +92,9 @@ class OpenidConnectProvider implements CreatorAware {
         ]
     }
 
-    String getFullAuthorizationEndpointUrl() {
+    String getFullAuthorizationEndpointUrl(String sessionId) {
         UriBuilder builder = UriBuilder.of(discoveryDocument.authorizationEndpoint)
-        authorizationEndpointParameters.getAsMap().each {k, v ->
+        authorizationEndpointParameters.getAsMap(sessionId).each {k, v ->
             builder = builder.queryParam(k, v)
         }
         builder.build().toString()

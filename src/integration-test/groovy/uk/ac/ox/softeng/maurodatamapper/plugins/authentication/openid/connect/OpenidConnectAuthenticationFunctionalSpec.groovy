@@ -33,6 +33,8 @@ import grails.gorm.transactions.Transactional
 import grails.testing.mixin.integration.Integration
 import grails.testing.spock.OnceBefore
 import groovy.util.logging.Slf4j
+import io.micronaut.core.type.Argument
+import io.micronaut.http.HttpResponse
 import org.jsoup.Connection
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -77,7 +79,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         catalogueUserService.get(id).delete(flush: true)
     }
 
-    def cleanup(){
+    def cleanup() {
         List<HttpSession> sessions = new ArrayList<>(servletContext.getAttribute(SessionService.CONTEXT_PROPERTY_NAME).values())
         log.warn('Destroying {} left over sessions', sessions.size())
         sessions.each {it.invalidate()}
@@ -205,8 +207,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
 
     void 'KEYCLOAK05 - test logging in with valid authentication code and invalid nonce'() {
         given:
-        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak()
-        authorizeResponse.nonce = UUID.randomUUID().toString()
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak('mdm-admin', 'mdm-admin', UUID.randomUUID().toString())
 
         when: 'in call made to login'
         POST('login?scheme=openIdConnect', authorizeResponse)
@@ -226,7 +227,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         verifyResponse(OK, response)
 
         when: 'grab the session created'
-        HttpSession session = servletContext.getAttribute(SessionService.CONTEXT_PROPERTY_NAME).values().find {it.getAttribute('emailAddress') == StandardEmailAddress.ADMIN}
+        HttpSession session = getSession(StandardEmailAddress.ADMIN)
 
         then: 'session timeout has been overridden to 24hrs which is the default for this plugin'
         session.maxInactiveInterval == Duration.ofHours(24).seconds
@@ -432,7 +433,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         session
 
         and: 'logging out'
-        PUT('logout',[:])
+        PUT('logout', [:])
 
         then:
         !getToken(session.id)
@@ -488,8 +489,8 @@ https://accounts.google.com/o/oauth2/v2/auth?scope=openid+email&response_type=co
         user.createdBy == 'openidConnectAuthentication@jenkins.cs.ox.ac.uk'
     }
 
-    Map<String, String> authoriseAgainstKeyCloak(String username = 'mdm-admin', String password = 'mdm-admin') {
-        Map<String, Object> documentData = getAuthoriseDocument(keycloakProvider)
+    Map<String, String> authoriseAgainstKeyCloak(String username = 'mdm-admin', String password = 'mdm-admin', String nonce = null) {
+        Map<String, Object> documentData = getAuthoriseDocument(keycloakProvider, nonce)
 
         // Get the login form and complete it
         FormElement form = (documentData.document as Document).getElementById('kc-form-login') as FormElement
@@ -510,14 +511,23 @@ https://accounts.google.com/o/oauth2/v2/auth?scope=openid+email&response_type=co
         Map<String, String> authenticateParameters = response.url().query.split('&').collectEntries {it.split('=')}
         authenticateParameters.openidConnectProviderId = keycloakProvider.id.toString()
         authenticateParameters.redirect_uri = documentData.redirectUrl
-        authenticateParameters.nonce = documentData.nonce
         authenticateParameters
     }
 
-    Map<String, Object> getAuthoriseDocument(OpenidConnectProvider provider) {
+    Map<String, Object> getAuthoriseDocument(OpenidConnectProvider provider, String nonce) {
+        String authoriseEndpoint
 
-        // Connect and then request the authorise page from KC
-        String authoriseEndpoint = provider.getFullAuthorizationEndpointUrl()
+        if (!nonce) {
+            // We need to get the session generated nonce in the URL so we need to make a proper request
+            // Lovely proof that the system is secure against replay
+            HttpResponse<List<Map>> localResponse = GET('openidConnectProviders', Argument.listOf(Map), true)
+
+            // Connect and then request the authorise page from KC
+            authoriseEndpoint = localResponse.body().find {it.label == provider.label}.authorizationEndpoint
+        } else {
+            // Fake a sessionid for authorisation which will result in different nonce values on token request
+            authoriseEndpoint = provider.getFullAuthorizationEndpointUrl(nonce)
+        }
 
         // Get all the parameters we sent to authorise
         Map<String, String> authorizeParameters = authoriseEndpoint.toURL().query.split('&').collectEntries {it.split('=')}
@@ -530,7 +540,6 @@ https://accounts.google.com/o/oauth2/v2/auth?scope=openid+email&response_type=co
         [document   : authoriseConnection.get(),
          cookies    : authoriseConnection.response().cookies(),
          redirectUrl: redirectUrl,
-         nonce      : authorizeParameters.nonce
         ]
     }
 
@@ -553,7 +562,7 @@ https://accounts.google.com/o/oauth2/v2/auth?scope=openid+email&response_type=co
         servletContext.getAttribute(SessionService.CONTEXT_PROPERTY_NAME).values().find {it.getAttribute('emailAddress') == emailAddress}
     }
 
-    Date getExpiredTime(){
+    Date getExpiredTime() {
         Date now = new Date()
         new Date(now.getTime() - 100000)
     }

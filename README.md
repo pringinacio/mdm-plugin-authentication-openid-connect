@@ -62,7 +62,7 @@ Described by https://auth0.com/docs/flows/authorization-code-flow
     * code
     * state
     * redirect_uri = exact uri used by UI
-    * nonce (sent from API but dynamically created each time so API doesnt know what it is)
+    * nonce (sent from API but cryptographically generated each time so API doesnt know what it is)
 7. API calls the access token endpoint using these parameters as a urlencoded form post 
    (also use basic auth header with username: `client_secret`,password: `$clientSecret`)
     * client_id
@@ -95,37 +95,71 @@ Described by https://auth0.com/docs/flows/authorization-code-flow
 4. If no refresh token or expired then we invalidate the session and return
 
 
-Notes:
+## Security 
+
+### State
+
+State is there to protect the end user from cross site request forgery(CSRF) attacks. It is introduced from OAuth 2.0 protocol RFC6749. Protocol states that:
+
+
+> Once authorization has been obtained from the end-user, the authorization server redirects the end-user's user-agent back to the client with the required 
+> binding value contained in the "state" parameter. The binding value enables the client to verify the validity of the request by matching the binding value 
+> to the user-agent's authenticated state
+
+This is therefore a UI communication thing which the API can supply as a random UUID.
+
+> An opaque value used by the client to maintain state between the request and callback. The authorization server includes this value when redirecting the user-agent 
+> back to the client. The parameter SHOULD be used for preventing cross-site request forgery
+
+### Nonce
+
+Nonce serves a different purpose. It binds the tokens with the client. It serves as a token validation parameter and is introduced from OpenID Connect specification.
+
+> String value used to associate a Client session with an ID Token, and to mitigate replay attacks. The value is passed through unmodified from the 
+> Authentication Request to the ID Token. If present in the ID Token, Clients MUST verify that the nonce Claim Value is equal to the value of the nonce 
+> parameter sent in the Authentication Request. If present in the Authentication Request, Authorization Servers MUST include a nonce Claim in the ID 
+> Token with the Claim Value being the nonce value sent in the Authentication Request. Authorization Servers SHOULD perform no other processing on nonce 
+> values used. The nonce value is a case sensitive string
+
+Nonce is therefore an API thing which the API will generate cryptographically from the session id. Therefore no 2 sessions will have the same nonce
+and it will be impossible to guess or fake as the session id cannot be manually configured.
+
+> The nonce parameter value needs to include per-session state and be unguessable to attackers. One method to achieve this for Web Server Clients is to 
+> store a cryptographically random value as an HttpOnly session cookie and use a cryptographic hash of the value as the nonce parameter. In that case, 
+> the nonce in the returned ID Token is compared to the hash of the session cookie to detect ID Token replay by third parties. A related method 
+> applicable to JavaScript Clients is to store the cryptographically random value in HTML5 local storage and use a cryptographic hash of this value.
+
+## Notes:
 
 The API supplies all of the authentication url prebuilt and requires the UI to add the `redirect_uri` parameter
 
-## Openid Connect Specifications
+### Openid Connect Specifications
 
-### Authorisation Endpoint
+#### Authorisation Endpoint
 
 https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint
 
-### Access Token Endpoint
+#### Access Token Endpoint
 
 https://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
 
 A failed attempt will nullify the code returned by the UI, requiring a request for a new code
 
-### User Information Endpoint
+#### User Information Endpoint
 
 https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
 
-### Client Authentication
+#### Client Authentication
 
 https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
 
-## Provider Specific Documentation
+### Provider Specific Documentation
 
-### Keycloak Documentation
+#### Keycloak Documentation
 
 https://www.keycloak.org/docs/latest/securing_apps/index.html#endpoints
 
-### Google Documentation
+#### Google Documentation
 
 https://developers.google.com/identity/protocols/oauth2/openid-connect
 

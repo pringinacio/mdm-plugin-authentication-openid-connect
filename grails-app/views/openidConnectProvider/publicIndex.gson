@@ -1,8 +1,11 @@
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 
+import javax.servlet.http.HttpSession
+
 model {
     Iterable<OpenidConnectProvider> openidConnectProviderList
+    HttpSession session
 }
 
-json tmpl.publicOpenidConnectProvider(openidConnectProviderList ?: [])
+json tmpl.publicOpenidConnectProvider(openidConnectProviderList ?: [],[session:session])
 

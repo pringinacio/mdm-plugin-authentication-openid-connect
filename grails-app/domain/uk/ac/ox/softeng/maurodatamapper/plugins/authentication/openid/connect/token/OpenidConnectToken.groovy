@@ -42,8 +42,6 @@ class OpenidConnectToken implements CreatorAware {
     Integer notBeforePolicy
     String tokenType
     OpenidConnectProvider openidConnectProvider
-    String nonce
-    //TODO generate from sessionid to ensure unique against session to stop replay attacks
     JWT jwt = new JWT()
 
     static constraints = {
@@ -55,7 +53,6 @@ class OpenidConnectToken implements CreatorAware {
         refreshExpiresIn nullable: true, min: 0L
         sessionState nullable: true
         notBeforePolicy nullable: true
-        nonce blank: false
     }
 
     static mapping = {

@@ -98,7 +98,7 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
             return null
         }
 
-        OpenidConnectToken token = openidConnectTokenService.createToken(openidConnectProvider, responseBody, authorizationResponseParameters.nonce, session.id)
+        OpenidConnectToken token = openidConnectTokenService.createToken(openidConnectProvider, responseBody, session.id)
 
         if (!openidConnectTokenService.verifyIdToken(token, authorizationResponseParameters.sessionState)) {
             return null

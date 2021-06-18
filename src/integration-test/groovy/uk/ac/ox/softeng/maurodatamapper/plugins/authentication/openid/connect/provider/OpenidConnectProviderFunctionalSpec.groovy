@@ -84,7 +84,7 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
   "authorizationEndpointParameters": {
     "id": "${json-unit.matches:id}",
     "lastUpdated": "${json-unit.matches:offsetDateTime}",
-    "scope": "openid email",
+    "scope": "openid email profile",
     "responseType": "code"
   },
   "discoveryDocument": {
@@ -482,10 +482,10 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
         assert authorizationEndpoint
         assert authorizationEndpoint.startsWith('https://accounts.google.com/o/oauth2/v2/auth?')
         assert authorizationEndpoint.contains('response_type=code')
-        assert authorizationEndpoint.contains('client_id=894713962139-bcggqkmpj45gu5v58o5mc9qc89f3tk16.apps.googleusercontent.com')
+        assert authorizationEndpoint.contains('client_id=375980182300-tc8sb8c1jelomnkmvqtkkqpl4g8lkp06.apps.googleusercontent.com')
         assert authorizationEndpoint.contains('scope=openid+email')
         assert authorizationEndpoint.find(/state=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
-        assert authorizationEndpoint.find(/nonce=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
+        assert authorizationEndpoint.find(/nonce=/)
 
         assert microsoft.id
         assert microsoft.openidConnectProviderType == 'STANDARD'
@@ -497,7 +497,7 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
         assert authorizationEndpoint.contains('client_id=microsoftClientId')
         assert authorizationEndpoint.contains('scope=openid+email')
         assert authorizationEndpoint.find(/state=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
-        assert authorizationEndpoint.find(/nonce=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
+        assert authorizationEndpoint.find(/nonce=/)
 
         assert keycloak.id
         assert keycloak.openidConnectProviderType == 'STANDARD'
@@ -509,6 +509,6 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
         assert authorizationEndpoint.contains('client_id=mdm')
         assert authorizationEndpoint.contains('scope=openid+email')
         assert authorizationEndpoint.find(/state=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
-        assert authorizationEndpoint.find(/nonce=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
+        assert authorizationEndpoint.find(/nonce=/)
     }
 }

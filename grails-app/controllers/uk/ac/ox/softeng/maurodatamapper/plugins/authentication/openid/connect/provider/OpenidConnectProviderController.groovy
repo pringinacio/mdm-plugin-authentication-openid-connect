@@ -39,7 +39,9 @@ class OpenidConnectProviderController extends EditLoggingController<OpenidConnec
         // Therefore if thats written then we dont want to try and re-write it
         if (response.isCommitted() || modelAndView) return
         respond res, [
-            view: (params as GrailsParameterMap).boolean('openAccess') ? 'publicIndex' : 'index']
+            view: (params as GrailsParameterMap).boolean('openAccess') ? 'publicIndex' : 'index',
+            model: [session: session]
+        ]
     }
 
     @Transactional

@@ -44,14 +44,6 @@ class OpenidConnectTokenService {
         openidConnectToken.delete(flush: true)
     }
 
-    List<OpenidConnectToken> findAllByCatalogueUser(CatalogueUser catalogueUser) {
-        OpenidConnectToken.findAllByCatalogueUser(catalogueUser)
-    }
-
-    List<OpenidConnectToken> findAllByEmailAddress(String emailAddress) {
-        OpenidConnectToken.byEmailAddress(emailAddress).list()
-    }
-
     OpenidConnectToken findBySessionId(String sessionId) {
         OpenidConnectToken.findBySessionId(sessionId)
     }
@@ -60,11 +52,7 @@ class OpenidConnectTokenService {
         delete(findBySessionId(sessionId))
     }
 
-    void deleteAllByEmailAddress(String emailAddress) {
-        OpenidConnectToken.byEmailAddress(emailAddress).deleteAll()
-    }
-
-    OpenidConnectToken createToken(OpenidConnectProvider openidConnectProvider, Map<String, Object> tokenResponseBody, String nonce, String sessionId) {
+    OpenidConnectToken createToken(OpenidConnectProvider openidConnectProvider, Map<String, Object> tokenResponseBody, String sessionId) {
         new OpenidConnectToken(
             openidConnectProvider: openidConnectProvider,
             sessionId: sessionId,
@@ -77,7 +65,6 @@ class OpenidConnectTokenService {
             notBeforePolicy: tokenResponseBody['not-before-policy'] as Integer,
             sessionState: tokenResponseBody.session_state,
             scope: tokenResponseBody.scope,
-            nonce: nonce,
             )
     }
 

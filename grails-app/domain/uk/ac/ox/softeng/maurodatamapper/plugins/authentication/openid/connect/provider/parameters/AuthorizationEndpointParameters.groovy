@@ -22,6 +22,7 @@ import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.CreatorAwareCon
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.parameters.Display
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.parameters.Prompt
+import uk.ac.ox.softeng.maurodatamapper.security.utils.SecurityUtils
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.CreatorAware
 
 
@@ -85,7 +86,7 @@ class AuthorizationEndpointParameters implements CreatorAware {
         openidConnectProvider?.clientId
     }
 
-    Map<String, String> getAsMap() {
+    Map<String, String> getAsMap(String sessionId) {
         [scope        : scope,
          response_type: responseType,
          client_id    : clientId,
@@ -98,7 +99,7 @@ class AuthorizationEndpointParameters implements CreatorAware {
          login_hint   : loginHint,
          acr_values   : acrValues,
          state        : UUID.randomUUID().toString(),
-         nonce        : UUID.randomUUID().toString()
+         nonce        : new String(SecurityUtils.getHash(sessionId))
         ].findAll {k, v -> v}
     }
 }

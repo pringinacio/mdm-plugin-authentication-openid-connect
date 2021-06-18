@@ -18,6 +18,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.jwt
 
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectToken
+import uk.ac.ox.softeng.maurodatamapper.security.utils.SecurityUtils
 
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.Verification
@@ -33,20 +34,20 @@ class OpenidConnectIdTokenJwtVerifier extends OpenidConnectTokenJwtVerifier {
     final String tokenSessionState
     final String lastKnownSessionState
     final Long maxAgeOfAuthentication
-    final String nonce
+    final String expectedNonce
 
     OpenidConnectIdTokenJwtVerifier(OpenidConnectToken token, String lastKnownSessionState) {
         super(token.decodedIdToken, token.openidConnectProvider)
         this.tokenSessionState = token.sessionState
         this.lastKnownSessionState = lastKnownSessionState
         this.maxAgeOfAuthentication = openidConnectProvider.authorizationEndpointParameters.maxAge
-        this.nonce = token.nonce
+        this.expectedNonce = new String(SecurityUtils.getHash(token.sessionId))
     }
 
     @Override
     Verification buildVerification() {
         Verification verification = super.buildVerification()
-            .withClaim('nonce', nonce)
+            .withClaim('nonce', expectedNonce)
             .withClaim('session_state', tokenSessionState)
 
 

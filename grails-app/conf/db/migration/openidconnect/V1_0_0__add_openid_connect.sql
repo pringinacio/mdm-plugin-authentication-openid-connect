@@ -65,7 +65,6 @@ CREATE TABLE openidconnect.openid_connect_token (
     id_token                   TEXT         NOT NULL,
     created_by                 VARCHAR(255) NOT NULL,
     refresh_expires_in         BIGINT,
-    nonce                      VARCHAR(255) NOT NULL,
     PRIMARY KEY (id)
 );
 CREATE
