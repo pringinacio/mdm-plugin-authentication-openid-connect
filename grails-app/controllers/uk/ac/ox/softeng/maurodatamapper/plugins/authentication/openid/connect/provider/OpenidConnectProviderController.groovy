@@ -18,6 +18,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider
 
 import uk.ac.ox.softeng.maurodatamapper.core.controller.EditLoggingController
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProviderType
 
 import grails.gorm.transactions.Transactional
 import grails.web.servlet.mvc.GrailsParameterMap
@@ -39,7 +40,7 @@ class OpenidConnectProviderController extends EditLoggingController<OpenidConnec
         // Therefore if thats written then we dont want to try and re-write it
         if (response.isCommitted() || modelAndView) return
         respond res, [
-            view: (params as GrailsParameterMap).boolean('openAccess') ? 'publicIndex' : 'index',
+            view : (params as GrailsParameterMap).boolean('openAccess') ? 'publicIndex' : 'index',
             model: [session: session]
         ]
     }
@@ -59,8 +60,10 @@ class OpenidConnectProviderController extends EditLoggingController<OpenidConnec
 
         instance.properties = getObjectToBind()
 
-        // If the DD has changed then load it in
-        if (instance.discoveryDocumentUrl && instance.isDirty('discoveryDocumentUrl')) {
+        // If the provider is "standard" then the DD data can ONLY come from its URL
+        // If someone has editted the DD URL then load it even if the provider is not standard
+        if (instance.discoveryDocumentUrl && instance.isDirty('discoveryDocumentUrl') ||
+            instance.openidConnectProviderType == OpenidConnectProviderType.STANDARD) {
             instance = openidConnectProviderService.loadDiscoveryDocumentIntoOpenidConnectProvider(instance)
         }
 
@@ -85,6 +88,7 @@ class OpenidConnectProviderController extends EditLoggingController<OpenidConnec
     @Override
     protected OpenidConnectProvider createResource(Map includesExcludes = Collections.EMPTY_MAP) {
         OpenidConnectProvider openidConnectProvider = super.createResource(includesExcludes)
+        // Load the DD if the provider is a standard provider
         if (openidConnectProvider.discoveryDocumentUrl) {
             openidConnectProvider = openidConnectProviderService.loadDiscoveryDocumentIntoOpenidConnectProvider(openidConnectProvider)
         }
