@@ -45,6 +45,7 @@ CREATE TABLE openidconnect.openid_connect_provider (
     created_by                           VARCHAR(255) NOT NULL,
     standard_provider                    BOOLEAN      NOT NULL,
     label                                VARCHAR(255) NOT NULL,
+    image_url                            VARCHAR(255) NULL,
     PRIMARY KEY (id)
 );
 CREATE TABLE openidconnect.openid_connect_token (
