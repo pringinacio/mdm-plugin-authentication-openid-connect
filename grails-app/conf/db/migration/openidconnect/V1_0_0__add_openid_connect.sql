@@ -43,7 +43,7 @@ CREATE TABLE openidconnect.openid_connect_provider (
     client_secret                        VARCHAR(255) NOT NULL,
     discovery_document_id                UUID         NOT NULL,
     created_by                           VARCHAR(255) NOT NULL,
-    openid_connect_provider_type         VARCHAR(255) NOT NULL,
+    standard_provider                    BOOLEAN      NOT NULL,
     label                                VARCHAR(255) NOT NULL,
     PRIMARY KEY (id)
 );
