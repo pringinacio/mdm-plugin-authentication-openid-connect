@@ -18,7 +18,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider
 
 import uk.ac.ox.softeng.maurodatamapper.core.controller.EditLoggingController
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProviderType
 
 import grails.gorm.transactions.Transactional
 import grails.web.servlet.mvc.GrailsParameterMap
@@ -62,8 +61,7 @@ class OpenidConnectProviderController extends EditLoggingController<OpenidConnec
 
         // If the provider is "standard" then the DD data can ONLY come from its URL
         // If someone has editted the DD URL then load it even if the provider is not standard
-        if (instance.discoveryDocumentUrl && instance.isDirty('discoveryDocumentUrl') ||
-            instance.openidConnectProviderType == OpenidConnectProviderType.STANDARD) {
+        if ((instance.discoveryDocumentUrl && instance.isDirty('discoveryDocumentUrl')) || (instance.standardProvider && instance.discoveryDocumentUrl)) {
             instance = openidConnectProviderService.loadDiscoveryDocumentIntoOpenidConnectProvider(instance)
         }
 

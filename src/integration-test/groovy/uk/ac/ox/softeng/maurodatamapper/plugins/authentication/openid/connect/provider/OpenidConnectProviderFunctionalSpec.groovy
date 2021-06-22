@@ -17,7 +17,6 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider
 
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProviderType
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.test.FunctionalSpec
 
@@ -47,7 +46,7 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
 
     Map getValidJson() {
         [label                    : 'Functional Test Provider 4',
-         openidConnectProviderType: OpenidConnectProviderType.NON_STANDARD,
+         standardProvider: false,
          clientId                 : 'testing',
          clientSecret             : 'c2e94d1c',
          discoveryDocument        : [
@@ -61,12 +60,13 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
 
     Map getInvalidJson() {
         [label                    : 'Functional Test Provider 4',
-         openidConnectProviderType: OpenidConnectProviderType.STANDARD,
+         standardProvider: true,
         ]
     }
 
     Map getValidUpdateJson() {
         [clientId         : 'integrationTesting',
+         standardProvider: false,
          discoveryDocument: [
              userinfoEndpoint: "http://test.com/userinfo",
          ]
@@ -78,7 +78,7 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
   "id": "${json-unit.matches:id}",
   "lastUpdated": "${json-unit.matches:offsetDateTime}",
   "label": "Functional Test Provider 4",
-  "openidConnectProviderType": "NON_STANDARD",
+  "standardProvider": false,
   "clientId": "testing",
   "clientSecret": "c2e94d1c",
   "authorizationEndpointParameters": {
@@ -96,7 +96,8 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
     "userinfoEndpoint": null,
     "endSessionEndpoint": null,
     "jwksUri": "http://test.com/o/oauth2/v2/auth"
-  }
+  },
+  "imageUrl": null
 }'''
     }
 
@@ -107,20 +108,23 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
     {
       "id": "${json-unit.matches:id}",
       "lastUpdated": "${json-unit.matches:offsetDateTime}",
-      "label": "Google Openid-Connect Provider",
-      "openidConnectProviderType": "STANDARD"
+      "label": "Google Openid-Connect",
+      "standardProvider": true,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
     },
     {
       "id": "${json-unit.matches:id}",
       "lastUpdated": "${json-unit.matches:offsetDateTime}",
-      "label": "Keycloak Openid-Connect Provider",
-      "openidConnectProviderType": "STANDARD"
+      "label": "Keycloak Openid-Connect",
+      "standardProvider": true,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/29/Keycloak_Logo.png"
     },
     {
       "id": "${json-unit.matches:id}",
       "lastUpdated": "${json-unit.matches:offsetDateTime}",
-      "label": "Microsoft Openid-Connect Provider",
-      "openidConnectProviderType": "STANDARD"
+      "label": "Microsoft Openid-Connect",
+      "standardProvider": true,
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/9/98/Microsoft_logo.jpg"
     }
   ]
 }'''
@@ -476,7 +480,7 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
         assert keycloak
 
         assert google.id
-        assert google.openidConnectProviderType == 'STANDARD'
+        assert google.standardProvider
         String authorizationEndpoint = google.authorizationEndpoint
         log.info('Google: {}', authorizationEndpoint)
         assert authorizationEndpoint
@@ -488,7 +492,7 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
         assert authorizationEndpoint.find(/nonce=/)
 
         assert microsoft.id
-        assert microsoft.openidConnectProviderType == 'STANDARD'
+        assert microsoft.standardProvider
         authorizationEndpoint = microsoft.authorizationEndpoint
         log.info('Microsoft: {}', authorizationEndpoint)
         assert authorizationEndpoint
@@ -500,7 +504,7 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
         assert authorizationEndpoint.find(/nonce=/)
 
         assert keycloak.id
-        assert keycloak.openidConnectProviderType == 'STANDARD'
+        assert keycloak.standardProvider
         authorizationEndpoint = keycloak.authorizationEndpoint
         log.info('Keycloak: {}', authorizationEndpoint)
         assert authorizationEndpoint

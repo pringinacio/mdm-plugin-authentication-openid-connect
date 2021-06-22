@@ -62,7 +62,6 @@ Described by https://auth0.com/docs/flows/authorization-code-flow
     * code
     * state
     * redirect_uri = exact uri used by UI
-    * nonce (sent from API but cryptographically generated each time so API doesnt know what it is)
 7. API calls the access token endpoint using these parameters as a urlencoded form post 
    (also use basic auth header with username: `client_secret`,password: `$clientSecret`)
     * client_id

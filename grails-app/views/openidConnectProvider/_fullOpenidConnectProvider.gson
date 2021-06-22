@@ -8,12 +8,14 @@ json {
     id openidConnectProvider.id
     lastUpdated openidConnectProvider.lastUpdated
     label openidConnectProvider.label
-    openidConnectProviderType openidConnectProvider.openidConnectProviderType.toString()
+    standardProvider openidConnectProvider.standardProvider
 
     clientId openidConnectProvider.clientId
     clientSecret openidConnectProvider.clientSecret
 
     authorizationEndpointParameters g.render(openidConnectProvider.authorizationEndpointParameters)
     discoveryDocument g.render(openidConnectProvider.discoveryDocument)
+
+    imageUrl openidConnectProvider.imageUrl
 }
 

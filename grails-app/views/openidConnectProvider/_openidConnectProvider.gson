@@ -8,6 +8,7 @@ json {
     id openidConnectProvider.id
     lastUpdated openidConnectProvider.lastUpdated
     label openidConnectProvider.label
-    openidConnectProviderType openidConnectProvider.openidConnectProviderType.toString()
+    standardProvider openidConnectProvider.standardProvider
+    imageUrl openidConnectProvider.imageUrl
 }
 

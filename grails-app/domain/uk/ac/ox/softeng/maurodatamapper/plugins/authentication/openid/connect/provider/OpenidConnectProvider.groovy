@@ -19,7 +19,6 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.p
 
 import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.CallableConstraints
 import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.CreatorAwareConstraints
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProviderType
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.details.DiscoveryDocument
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.parameters.AuthorizationEndpointParameters
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.CreatorAware
@@ -33,7 +32,7 @@ class OpenidConnectProvider implements CreatorAware {
 
     UUID id
     String label
-    OpenidConnectProviderType openidConnectProviderType
+    Boolean standardProvider
 
     String discoveryDocumentUrl
 
@@ -42,15 +41,17 @@ class OpenidConnectProvider implements CreatorAware {
 
     AuthorizationEndpointParameters authorizationEndpointParameters
     DiscoveryDocument discoveryDocument
+    String imageUrl
 
     static constraints = {
         CallableConstraints.call(CreatorAwareConstraints, delegate)
         label unique: true, blank: false
         discoveryDocumentUrl blank: false, url: true, nullable: true, validator: {val, obj ->
-            if (obj.openidConnectProviderType == OpenidConnectProviderType.STANDARD && !val) return ['default.null.message']
+            if (obj.standardProvider && !val) return ['default.null.message']
         }
         clientId blank: false
         clientSecret blank: false
+        imageUrl url: true, blank: false, nullable: true
     }
 
     static mapping = {

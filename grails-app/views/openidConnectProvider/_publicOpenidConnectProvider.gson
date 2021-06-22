@@ -6,11 +6,11 @@ model{
     OpenidConnectProvider openidConnectProvider
     HttpSession session
 }
-log.warn("${binding.variables}")
 json{
     id openidConnectProvider.id
     label openidConnectProvider.label
-    openidConnectProviderType openidConnectProvider.openidConnectProviderType.toString()
+    standardProvider openidConnectProvider.standardProvider
     authorizationEndpoint openidConnectProvider.getFullAuthorizationEndpointUrl(session.id)
+    imageUrl openidConnectProvider.imageUrl
 }
 

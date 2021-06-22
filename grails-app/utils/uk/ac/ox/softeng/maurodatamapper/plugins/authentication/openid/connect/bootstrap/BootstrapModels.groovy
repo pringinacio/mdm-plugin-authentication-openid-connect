@@ -18,7 +18,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap
 
 import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProviderType
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.details.DiscoveryDocumentService
 
@@ -33,19 +32,20 @@ import static uk.ac.ox.softeng.maurodatamapper.util.GormUtils.checkAndSave
 @Slf4j
 class BootstrapModels {
 
-    public static final String GOOGLE_OPENID_CONNECT_PROVIDER_NAME = 'Google Openid-Connect Provider'
-    public static final String MICROSOFT_OPENID_CONNECT_PROVIDER_NAME = 'Microsoft Openid-Connect Provider'
-    public static final String KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME = 'Keycloak Openid-Connect Provider'
+    public static final String GOOGLE_OPENID_CONNECT_PROVIDER_NAME = 'Google Openid-Connect'
+    public static final String MICROSOFT_OPENID_CONNECT_PROVIDER_NAME = 'Microsoft Openid-Connect'
+    public static final String KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME = 'Keycloak Openid-Connect'
 
     static OpenidConnectProvider buildAndSaveGoogleProvider(MessageSource messageSource, Map openidConnectConfig, DiscoveryDocumentService discoveryDocumentService) {
         log.info('Adding {}', GOOGLE_OPENID_CONNECT_PROVIDER_NAME)
         OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
             label: GOOGLE_OPENID_CONNECT_PROVIDER_NAME,
             createdBy: StandardEmailAddress.ADMIN,
-            openidConnectProviderType: OpenidConnectProviderType.STANDARD,
+            standardProvider: true,
             discoveryDocumentUrl: "https://accounts.google.com/.well-known/openid-configuration",
             clientId: openidConnectConfig.clientId,
             clientSecret: openidConnectConfig.clientSecret,
+            imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg'
             )
         openidConnectProvider.discoveryDocument = discoveryDocumentService.loadDiscoveryDocumentForOpenidConnectProvider(openidConnectProvider)
         checkAndSave(messageSource, openidConnectProvider)
@@ -57,10 +57,11 @@ class BootstrapModels {
         OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
             label: MICROSOFT_OPENID_CONNECT_PROVIDER_NAME,
             createdBy: StandardEmailAddress.ADMIN,
-            openidConnectProviderType: OpenidConnectProviderType.STANDARD,
+            standardProvider:true,
             discoveryDocumentUrl: 'https://login.microsoftonline.com/common/.well-known/openid-configuration',
             clientId: openidConnectConfig.clientId,
             clientSecret: openidConnectConfig.clientSecret,
+            imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Microsoft_logo.jpg'
             )
         openidConnectProvider.discoveryDocument = discoveryDocumentService.loadDiscoveryDocumentForOpenidConnectProvider(openidConnectProvider)
         openidConnectProvider.discoveryDocument.issuer = openidConnectProvider.discoveryDocument.issuer.replace('{tenantid}', openidConnectConfig.clientId)
@@ -74,10 +75,11 @@ class BootstrapModels {
         OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
             label: KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME,
             createdBy: StandardEmailAddress.ADMIN,
-            openidConnectProviderType: OpenidConnectProviderType.STANDARD,
+            standardProvider: true,
             discoveryDocumentUrl: "${openidConnectConfig.baseUrl}/realms/${openidConnectConfig.realm}/.well-known/openid-configuration",
             clientId: openidConnectConfig.clientId,
             clientSecret: openidConnectConfig.clientSecret,
+            imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/29/Keycloak_Logo.png'
             )
         openidConnectProvider.discoveryDocument = discoveryDocumentService.loadDiscoveryDocumentForOpenidConnectProvider(openidConnectProvider)
         checkAndSave(messageSource, openidConnectProvider)

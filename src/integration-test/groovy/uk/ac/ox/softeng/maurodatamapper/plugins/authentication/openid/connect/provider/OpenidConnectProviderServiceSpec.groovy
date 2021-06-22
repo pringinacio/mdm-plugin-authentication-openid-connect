@@ -18,7 +18,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider
 
 import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.OpenidConnectProviderType
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.details.DiscoveryDocument
 import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
@@ -42,7 +41,7 @@ class OpenidConnectProviderServiceSpec extends BaseIntegrationSpec {
         OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
             label: 'integration test provider',
             createdBy: StandardEmailAddress.ADMIN,
-            openidConnectProviderType: OpenidConnectProviderType.NON_STANDARD,
+            standardProvider: false,
             clientId: 'test',
             clientSecret: 'test secret',
             discoveryDocument: new DiscoveryDocument(

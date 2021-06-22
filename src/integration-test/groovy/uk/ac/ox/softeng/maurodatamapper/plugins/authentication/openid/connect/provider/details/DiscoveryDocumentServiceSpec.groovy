@@ -54,7 +54,7 @@ class DiscoveryDocumentServiceSpec extends BaseIntegrationSpec {
 
         then:
         dd
-        dd.size() == 23
+        dd.size() == 24
         dd.issuer == 'https://sts.windows.net/{tenantid}/'
         dd.authorization_endpoint == 'https://login.microsoftonline.com/common/oauth2/authorize'
         dd.token_endpoint == 'https://login.microsoftonline.com/common/oauth2/token'
