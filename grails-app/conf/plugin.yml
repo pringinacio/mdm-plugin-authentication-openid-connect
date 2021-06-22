@@ -8,4 +8,4 @@ maurodatamapper:
             enabled: false
             tenant: common
         keycloak:
-            enabled: true
+            enabled: false
