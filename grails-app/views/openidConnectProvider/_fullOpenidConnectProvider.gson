@@ -9,6 +9,7 @@ json {
     lastUpdated openidConnectProvider.lastUpdated
     label openidConnectProvider.label
     standardProvider openidConnectProvider.standardProvider
+    discoveryDocumentUrl openidConnectProvider.discoveryDocumentUrl
 
     clientId openidConnectProvider.clientId
     clientSecret openidConnectProvider.clientSecret
