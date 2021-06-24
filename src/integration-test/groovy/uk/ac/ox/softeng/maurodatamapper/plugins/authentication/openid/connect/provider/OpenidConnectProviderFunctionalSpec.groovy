@@ -20,6 +20,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.p
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.test.FunctionalSpec
 
+import grails.gorm.transactions.Transactional
 import grails.testing.mixin.integration.Integration
 import groovy.util.logging.Slf4j
 import io.micronaut.core.type.Argument
@@ -79,6 +80,7 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
   "lastUpdated": "${json-unit.matches:offsetDateTime}",
   "label": "Functional Test Provider 4",
   "standardProvider": false,
+  "discoveryDocumentUrl": null,
   "clientId": "testing",
   "clientSecret": "c2e94d1c",
   "authorizationEndpointParameters": {
@@ -101,6 +103,35 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
 }'''
     }
 
+    String getKeycloakJson() {
+        '''{
+  "id": "${json-unit.matches:id}",
+  "lastUpdated": "${json-unit.matches:offsetDateTime}",
+  "label": "Keycloak",
+  "standardProvider": true,
+  "discoveryDocumentUrl": "https://jenkins.cs.ox.ac.uk/auth/realms/test/.well-known/openid-configuration",
+  "clientId": "mdm",
+  "clientSecret": "${json-unit.matches:id}",
+  "authorizationEndpointParameters": {
+    "id": "${json-unit.matches:id}",
+    "lastUpdated": "${json-unit.matches:offsetDateTime}",
+    "scope": "openid email profile",
+    "responseType": "code"
+  },
+  "discoveryDocument": {
+    "id": "${json-unit.matches:id}",
+    "lastUpdated": "${json-unit.matches:offsetDateTime}",
+    "issuer": "https://jenkins.cs.ox.ac.uk/auth/realms/test",
+    "authorizationEndpoint": "https://jenkins.cs.ox.ac.uk/auth/realms/test/protocol/openid-connect/auth",
+    "tokenEndpoint": "https://jenkins.cs.ox.ac.uk/auth/realms/test/protocol/openid-connect/token",
+    "userinfoEndpoint": "https://jenkins.cs.ox.ac.uk/auth/realms/test/protocol/openid-connect/userinfo",
+    "endSessionEndpoint": "https://jenkins.cs.ox.ac.uk/auth/realms/test/protocol/openid-connect/logout",
+    "jwksUri": "https://jenkins.cs.ox.ac.uk/auth/realms/test/protocol/openid-connect/certs"
+  },
+  "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/29/Keycloak_Logo.png"
+}'''
+    }
+
     String getAdminIndexJson() {
         '''{
   "count": 3,
@@ -108,26 +139,31 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
     {
       "id": "${json-unit.matches:id}",
       "lastUpdated": "${json-unit.matches:offsetDateTime}",
-      "label": "Google Openid-Connect",
+      "label": "Google",
       "standardProvider": true,
       "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
     },
     {
       "id": "${json-unit.matches:id}",
       "lastUpdated": "${json-unit.matches:offsetDateTime}",
-      "label": "Keycloak Openid-Connect",
+      "label": "Keycloak",
       "standardProvider": true,
       "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/29/Keycloak_Logo.png"
     },
     {
       "id": "${json-unit.matches:id}",
       "lastUpdated": "${json-unit.matches:offsetDateTime}",
-      "label": "Microsoft Openid-Connect",
+      "label": "Microsoft",
       "standardProvider": true,
       "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/9/98/Microsoft_logo.jpg"
     }
   ]
 }'''
+    }
+
+    @Transactional
+    String getKeycloakProviderId(){
+        OpenidConnectProvider.findByLabel(BootstrapModels.KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME).id.toString()
     }
 
     /**
@@ -281,6 +317,18 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
 
         cleanup:
         removeValidIdObject(id)
+    }
+
+    void 'A06 : Test the show action correctly renders an bootstrapped instance (as admin)'() {
+        given:
+        def id = getKeycloakProviderId()
+        loginAdmin()
+
+        when: 'When the show action is called to retrieve a resource'
+        GET("$id", STRING_ARG)
+
+        then: 'The response is correct'
+        verifyJsonResponse OK, keycloakJson
     }
 
     void 'EXX : Test editor endpoints are all forbidden'() {

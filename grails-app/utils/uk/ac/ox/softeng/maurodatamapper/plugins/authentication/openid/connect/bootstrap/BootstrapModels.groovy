@@ -32,12 +32,12 @@ import static uk.ac.ox.softeng.maurodatamapper.util.GormUtils.checkAndSave
 @Slf4j
 class BootstrapModels {
 
-    public static final String GOOGLE_OPENID_CONNECT_PROVIDER_NAME = 'Google Openid-Connect'
-    public static final String MICROSOFT_OPENID_CONNECT_PROVIDER_NAME = 'Microsoft Openid-Connect'
-    public static final String KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME = 'Keycloak Openid-Connect'
+    public static final String GOOGLE_OPENID_CONNECT_PROVIDER_NAME = 'Google'
+    public static final String MICROSOFT_OPENID_CONNECT_PROVIDER_NAME = 'Microsoft'
+    public static final String KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME = 'Keycloak'
 
     static OpenidConnectProvider buildAndSaveGoogleProvider(MessageSource messageSource, Map openidConnectConfig, DiscoveryDocumentService discoveryDocumentService) {
-        log.info('Adding {}', GOOGLE_OPENID_CONNECT_PROVIDER_NAME)
+        log.info('Adding [{}] Open-id Connect Provider', GOOGLE_OPENID_CONNECT_PROVIDER_NAME)
         OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
             label: GOOGLE_OPENID_CONNECT_PROVIDER_NAME,
             createdBy: StandardEmailAddress.ADMIN,
@@ -53,7 +53,7 @@ class BootstrapModels {
     }
 
     static OpenidConnectProvider buildAndSaveMicrosoftProvider(MessageSource messageSource, Map openidConnectConfig, DiscoveryDocumentService discoveryDocumentService) {
-        log.info('Adding {}', MICROSOFT_OPENID_CONNECT_PROVIDER_NAME)
+        log.info('Adding [{}] Open-id Connect Provider', MICROSOFT_OPENID_CONNECT_PROVIDER_NAME)
         OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
             label: MICROSOFT_OPENID_CONNECT_PROVIDER_NAME,
             createdBy: StandardEmailAddress.ADMIN,
@@ -71,7 +71,7 @@ class BootstrapModels {
     }
 
     static OpenidConnectProvider buildAndSaveKeycloakProvider(MessageSource messageSource, Map openidConnectConfig, DiscoveryDocumentService discoveryDocumentService) {
-        log.info('Adding {}', KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME)
+        log.info('Adding [{}] Open-id Connect Provider', KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME)
         OpenidConnectProvider openidConnectProvider = new OpenidConnectProvider(
             label: KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME,
             createdBy: StandardEmailAddress.ADMIN,

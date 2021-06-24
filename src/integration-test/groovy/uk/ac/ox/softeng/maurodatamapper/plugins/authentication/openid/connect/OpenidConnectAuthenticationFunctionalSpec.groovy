@@ -445,6 +445,37 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         verifyResponse(NOT_FOUND, response)
     }
 
+    @Ignore('not coded')
+    void 'KEYCLOAK15 - test access after user has been disabled'() {
+
+        when: 'not logged in'
+        GET("folders/${folderId}", MAP_ARG, true)
+
+        then: 'folder is not available'
+        verifyResponse(NOT_FOUND, response)
+
+        when: 'logged in'
+        Map<String, String> authorizeResponse = authoriseAgainstKeyCloak('mdm-admin', 'mdm-admin')
+        POST('login?scheme=openIdConnect', authorizeResponse)
+        verifyResponse(OK, response)
+        HttpSession session = getSession(StandardEmailAddress.ADMIN)
+
+        then:
+        session
+
+        and: 'logging out'
+        PUT('logout', [:])
+
+        then:
+        !getToken(session.id)
+
+        and: 'getting folder'
+        GET("folders/${folderId}", MAP_ARG, true)
+
+        then: 'session timed out folder is not available\''
+        verifyResponse(NOT_FOUND, response)
+    }
+
     @Ignore('Manual testing only')
     void 'GOOGLE01 - test logging in with valid authentication code and parameters with non-existent user'() {
         given:
