@@ -55,6 +55,8 @@ class OpenidConnectProvider implements CreatorAware {
     }
 
     static mapping = {
+        discoveryDocument cascade: 'all-delete-orphan'
+        authorizationEndpointParameters cascade: 'all-delete-orphan'
     }
 
     OpenidConnectProvider() {

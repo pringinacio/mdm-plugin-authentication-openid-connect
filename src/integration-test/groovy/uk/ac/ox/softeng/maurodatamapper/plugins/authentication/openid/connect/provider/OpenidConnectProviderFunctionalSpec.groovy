@@ -46,11 +46,11 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
     }
 
     Map getValidJson() {
-        [label                    : 'Functional Test Provider 4',
-         standardProvider: false,
-         clientId                 : 'testing',
-         clientSecret             : 'c2e94d1c',
-         discoveryDocument        : [
+        [label            : 'Functional Test Provider 4',
+         standardProvider : false,
+         clientId         : 'testing',
+         clientSecret     : 'c2e94d1c',
+         discoveryDocument: [
              issuer               : "http://test.com",
              authorizationEndpoint: "http://test.com/o/oauth2/v2/auth",
              tokenEndpoint        : "http://test.com/o/oauth2/v2/auth",
@@ -60,14 +60,14 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
     }
 
     Map getInvalidJson() {
-        [label                    : 'Functional Test Provider 4',
+        [label           : 'Functional Test Provider 4',
          standardProvider: true,
         ]
     }
 
     Map getValidUpdateJson() {
         [clientId         : 'integrationTesting',
-         standardProvider: false,
+         standardProvider : false,
          discoveryDocument: [
              userinfoEndpoint: "http://test.com/userinfo",
          ]
@@ -162,7 +162,7 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
     }
 
     @Transactional
-    String getKeycloakProviderId(){
+    String getKeycloakProviderId() {
         OpenidConnectProvider.findByLabel(BootstrapModels.KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME).id.toString()
     }
 
@@ -329,6 +329,42 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
 
         then: 'The response is correct'
         verifyJsonResponse OK, keycloakJson
+    }
+
+    void 'A07 : Test the update action correctly works on a standard/bootstrapped instance (as admin)'() {
+        given:
+        def id = getKeycloakProviderId()
+        loginAdmin()
+
+        when: 'When the show action is called to retrieve a resource'
+        PUT("$id", [authorizationEndpointParameters:
+                        [scope       : 'openid email profile',
+                         responseType: 'code',]
+        ])
+
+        then: 'The response is correct'
+        verifyResponse OK, response
+    }
+
+    void 'A08 : Test the save action correctly persists an standard instance (as admin)'() {
+        given:
+        loginAdmin()
+
+        when:
+        POST('', [label               : 'Functional Test Provider 5',
+                  standardProvider    : true,
+                  clientId            : 'testing',
+                  clientSecret        : 'c2e94d1c',
+                  discoveryDocumentUrl: 'https://accounts.google.com/.well-known/openid-configuration'
+        ])
+
+        then:
+        verifyResponse CREATED, response
+        responseBody().id
+
+        cleanup:
+        removeValidIdObject(responseBody().id)
+
     }
 
     void 'EXX : Test editor endpoints are all forbidden'() {

@@ -62,7 +62,7 @@ class OpenidConnectProviderController extends EditLoggingController<OpenidConnec
         // If the provider is "standard" then the DD data can ONLY come from its URL
         // If someone has editted the DD URL then load it even if the provider is not standard
         if ((instance.discoveryDocumentUrl && instance.isDirty('discoveryDocumentUrl')) || (instance.standardProvider && instance.discoveryDocumentUrl)) {
-            instance = openidConnectProviderService.loadDiscoveryDocumentIntoOpenidConnectProvider(instance)
+            instance = openidConnectProviderService.updateDiscoveryDocumentInOpenidConnectProvider(instance)
         }
 
         if (!validateResource(instance, 'update')) return

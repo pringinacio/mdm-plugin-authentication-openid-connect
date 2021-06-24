@@ -59,8 +59,20 @@ class OpenidConnectProviderService {
     }
 
     OpenidConnectProvider loadDiscoveryDocumentIntoOpenidConnectProvider(OpenidConnectProvider openidConnectProvider) {
-        DiscoveryDocument discoveryDocument = discoveryDocumentService.loadDiscoveryDocumentForOpenidConnectProvider(openidConnectProvider)
-        openidConnectProvider.discoveryDocument = discoveryDocument
+        openidConnectProvider.discoveryDocument = discoveryDocumentService.loadDiscoveryDocumentForOpenidConnectProvider(openidConnectProvider)
+        openidConnectProvider
+    }
+
+    OpenidConnectProvider updateDiscoveryDocumentInOpenidConnectProvider(OpenidConnectProvider openidConnectProvider) {
+        DiscoveryDocument reloadedDocument = discoveryDocumentService.loadDiscoveryDocumentForOpenidConnectProvider(openidConnectProvider)
+        openidConnectProvider.discoveryDocument.tap {
+            issuer = reloadedDocument.issuer
+            authorizationEndpoint = reloadedDocument.authorizationEndpoint
+            tokenEndpoint = reloadedDocument.tokenEndpoint
+            userinfoEndpoint = reloadedDocument.userinfoEndpoint
+            endSessionEndpoint = reloadedDocument.endSessionEndpoint
+            jwksUri = reloadedDocument.jwksUri
+        }
         openidConnectProvider
     }
 
