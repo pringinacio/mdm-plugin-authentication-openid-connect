@@ -196,7 +196,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
     void 'KEYCLOAK04 - test logging in with valid authentication code and invalid session_state'() {
         given:
         Map<String, String> authorizeResponse = authoriseAgainstKeyCloak()
-        authorizeResponse.session_state = UUID.randomUUID().toString()
+        authorizeResponse.sessionState = UUID.randomUUID().toString()
 
         when: 'in call made to login'
         POST('login?scheme=openIdConnect', authorizeResponse)
@@ -541,7 +541,8 @@ https://accounts.google.com/o/oauth2/v2/auth?scope=openid+email&response_type=co
         // Get all the parameters we got back from authenticate
         Map<String, String> authenticateParameters = response.url().query.split('&').collectEntries {it.split('=')}
         authenticateParameters.openidConnectProviderId = keycloakProvider.id.toString()
-        authenticateParameters.redirect_uri = documentData.redirectUrl
+        authenticateParameters.redirectUri = documentData.redirectUrl
+        authenticateParameters.sessionState = authenticateParameters.session_state
         authenticateParameters
     }
 

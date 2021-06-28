@@ -32,8 +32,8 @@ class AuthorizationResponseParameters {
 
     AuthorizationResponseParameters(Map<String, Object> parameters) {
         openidConnectProviderId = Utils.toUuid(parameters.openidConnectProviderId)
-        this.sessionState = parameters.session_state
-        this.redirectUri = parameters.redirect_uri
+        this.sessionState = parameters.sessionState?:parameters.session_state
+        this.redirectUri = parameters.redirectUri?: parameters.redirect_uri
         // Codes come in URL to UI we need to make sure they're decoded for the post request
         this.code = parameters.code ? URLDecoder.decode(parameters.code as String, 'UTF-8') : null
         this.state = parameters.state
