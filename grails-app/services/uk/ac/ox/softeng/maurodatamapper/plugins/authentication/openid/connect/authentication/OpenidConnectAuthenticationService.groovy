@@ -119,7 +119,8 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
                                                       firstName: userInfoBody.given_name ?: 'Unknown',
                                                       lastName: userInfoBody.family_name ?: 'Unknown',
                                                       createdBy: "openidConnectAuthentication@${issuerUrl.authority}",
-                                                      pending: false)
+                                                      pending: false,
+                                                      creationMethod: 'OpenID-Connect')
 
             if (!user.validate()) throw new ApiInvalidModelException('OCAS02:', 'Invalid user creation', user.errors)
             user.save(flush: true, validate: false)
