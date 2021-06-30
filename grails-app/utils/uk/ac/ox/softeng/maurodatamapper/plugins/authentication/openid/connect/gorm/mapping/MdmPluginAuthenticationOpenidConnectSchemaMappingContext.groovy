@@ -37,5 +37,10 @@ class MdmPluginAuthenticationOpenidConnectSchemaMappingContext extends PluginSch
     String getSchemaName() {
         'openidconnect'
     }
+
+    @Override
+    int getOrder() {
+        100 // Make sure loads after security which defaults to 0
+    }
 }
 
