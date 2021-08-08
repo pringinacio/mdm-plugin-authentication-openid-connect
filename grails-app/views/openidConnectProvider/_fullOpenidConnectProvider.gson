@@ -1,0 +1,22 @@
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
+
+model {
+    OpenidConnectProvider openidConnectProvider
+}
+
+json {
+    id openidConnectProvider.id
+    lastUpdated openidConnectProvider.lastUpdated
+    label openidConnectProvider.label
+    standardProvider openidConnectProvider.standardProvider
+    discoveryDocumentUrl openidConnectProvider.discoveryDocumentUrl
+
+    clientId openidConnectProvider.clientId
+    clientSecret openidConnectProvider.clientSecret
+
+    authorizationEndpointParameters g.render(openidConnectProvider.authorizationEndpointParameters)
+    discoveryDocument g.render(openidConnectProvider.discoveryDocument)
+
+    imageUrl openidConnectProvider.imageUrl
+}
+

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
+ * Copyright 2020-2021 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins
+package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
 
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.gorm.mapping.MdmPluginAuthenticationOpenidConnectSchemaMappingContext
 
 import grails.plugins.Plugin
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean
 
-class MdmPluginTemplateGrailsPlugin extends Plugin {
+class MdmPluginAuthenticationOpenidConnectGrailsPlugin extends Plugin {
 
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "4.0.1 > *"
@@ -29,61 +31,61 @@ class MdmPluginTemplateGrailsPlugin extends Plugin {
         "grails-app/views/error.gsp"
     ]
 
-    // TODO Fill in these fields
-    def title = "Rest Api Plugin"
+    def title = "OpenID Connect Authentication Plugin"
     // Headline display name of the plugin
-    def author = "Your name"
-    def authorEmail = ""
+    def author = "Christina Alexander"
+    def authorEmail = "Christina.Alexander@oxfordcc.co.uk"
     def description = '''\
-Brief summary/description of the plugin.
+This plugin implements OpenID Connect integration.
 '''
 
     // URL to the plugin's documentation
-    def documentation = "http://grails.org/plugin/rest-api-plugin"
+    def documentation = ""
 
     // Extra (optional) plugin metadata
 
     // License: one of 'APACHE', 'GPL2', 'GPL3'
-    //    def license = "APACHE"
+    def license = "APACHE"
 
     // Details of company behind the plugin (if there is one)
-    //    def organization = [ name: "My Company", url: "http://www.my-company.com/" ]
+    def organization = [name: "Oxford University BRC Informatics", url: "www.ox.ac.uk"]
 
     // Any additional developers beyond the author specified above.
-    //    def developers = [ [ name: "Joe Bloggs", email: "joe@bloggs.net" ]]
+    def developers = [[name: 'Oliver Freeman', email: 'oliver.freeman@bdi.ox.ac.uk'],
+        [name: 'James Welch', email: 'james.welch@bdi.ox.ac.uk'],]
 
     // Location of the plugin's issue tracker.
-    //    def issueManagement = [ system: "JIRA", url: "http://jira.grails.org/browse/GPMYPLUGIN" ]
+    def issueManagement = [system: "YouTrack", url: "https://maurodatamapper.myjetbrains.com"]
 
     // Online location of the plugin's browseable source code.
-    //    def scm = [ url: "http://svn.codehaus.org/grails-plugins/" ]
+    def scm = [url: "https://github.com/mauroDataMapper-plugins/mdm-plugin-fhir"]
+
+    def dependsOn = [
+        mdmCore    : '4.5.0 > *',
+        mdmSecurity: '4.5.0 > *'
+    ]
 
     Closure doWithSpring() {
         {->
-            // TODO Implement runtime spring config (optional)
+            mdmPluginAuthenticationOpenidConnectSchemaMappingContext MdmPluginAuthenticationOpenidConnectSchemaMappingContext
+            openidAccessHttpSessionListener(ServletListenerRegistrationBean) {
+                listener = ref('openidConnectAccessService')
+            }
         }
     }
 
     void doWithDynamicMethods() {
-        // TODO Implement registering dynamic methods to classes (optional)
     }
 
     void doWithApplicationContext() {
-        // TODO Implement post initialization spring config (optional)
     }
 
     void onChange(Map<String, Object> event) {
-        // TODO Implement code that is executed when any artefact that this plugin is
-        // watching is modified and reloaded. The event contains: event.source,
-        // event.application, event.manager, event.ctx, and event.plugin.
     }
 
     void onConfigChange(Map<String, Object> event) {
-        // TODO Implement code that is executed when the project configuration changes.
-        // The event is the same as for 'onChange'.
     }
 
     void onShutdown(Map<String, Object> event) {
-        // TODO Implement code that is executed when the application shuts down (optional)
     }
 }

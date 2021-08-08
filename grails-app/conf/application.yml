@@ -15,10 +15,25 @@ maurodatamapper:
     authority:
         name: 'Mauro Data Mapper'
         url: http://localhost
+    openidConnect:
+        google:
+            enabled: true
+            clientId: 375980182300-tc8sb8c1jelomnkmvqtkkqpl4g8lkp06.apps.googleusercontent.com
+            clientSecret: XBeb-cTftDQxGvW-KMfR0vKR
+        microsoft:
+            enabled: true
+            clientId: microsoftClientId
+            clientSecret: microsoftClientSecret
+        keycloak:
+            enabled: true
+            baseUrl: https://jenkins.cs.ox.ac.uk/auth
+            realm: 'test'
+            clientId: mdm
+            clientSecret: '4b3b7290-7629-4b88-b310-df256adc8fed'
 grails:
     profile: rest-api-plugin
     codegen:
-        defaultPackage: uk.ac.ox.softeng.maurodatamapper.plugins.plugin_name
+        defaultPackage: uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
     gorm:
         reactor:
             # Whether to translate GORM events into Reactor events
@@ -149,14 +164,14 @@ environments:
         spring.flyway.enabled: false
         database:
             name: 'mpp'
-            creation: 'CREATE SCHEMA IF NOT EXISTS CORE\;CREATE SCHEMA IF NOT EXISTS DATAMODEL\;CREATE SCHEMA IF NOT EXISTS TERMINOLOGY'
+            creation: 'CREATE SCHEMA IF NOT EXISTS CORE\;CREATE SCHEMA IF NOT EXISTS SECURITY\; CREATE SCHEMA IF NOT EXISTS OPENIDCONNECT'
         dataSource:
-    driverClassName: org.h2.Driver
-        dialect: org.hibernate.dialect.H2Dialect
-    username: sa
-    password: ''
-        dbCreate: create
-        url: 'jdbc:h2:mem:${database.name};LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL;INIT=${database.creation}'
+            driverClassName: org.h2.Driver
+            dialect: org.hibernate.dialect.H2Dialect
+            username: sa
+            password: ''
+            dbCreate: create
+            url: 'jdbc:h2:mem:${database.name};LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL;INIT=${database.creation}'
     development:
         dataSource:
             driverClassName: org.postgresql.Driver

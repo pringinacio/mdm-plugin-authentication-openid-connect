@@ -1,10 +1,17 @@
 dependencies {
-
+    compile "io.micronaut:micronaut-http-client"
     runtimeOnly "io.methvin:directory-watcher", {
         exclude group: 'com.google.guava', module: 'guava'
     }
 
-    testImplementation group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-testing-framework', version: mdmTestingFrameworkVersion
+    testImplementation group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-testing-framework', version: mdmCoreVersion
+    testImplementation group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-plugin-authentication-basic', version: mdmCoreVersion
+
+    testImplementation "org.jsoup:jsoup:$jsoupVersion"
+
+    compile group: 'com.auth0', name: 'java-jwt', version: '3.16.0'
+    compile group: 'com.auth0', name: 'jwks-rsa', version: '0.18.0'
+//    implementation group: 'com.auth0', name: 'auth0', version: '1.31.0'
 
     // Postgres database
     runtime group: 'org.flywaydb', name: 'flyway-core'

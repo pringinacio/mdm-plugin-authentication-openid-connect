@@ -1,0 +1,11 @@
+maurodatamapper:
+    openidConnect:
+        session:
+            timeout: 24h
+        google:
+            enabled: false
+        microsoft:
+            enabled: false
+            tenant: common
+        keycloak:
+            enabled: false

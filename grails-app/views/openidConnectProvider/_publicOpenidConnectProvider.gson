@@ -1,0 +1,16 @@
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
+
+import javax.servlet.http.HttpSession
+
+model{
+    OpenidConnectProvider openidConnectProvider
+    HttpSession session
+}
+json{
+    id openidConnectProvider.id
+    label openidConnectProvider.label
+    standardProvider openidConnectProvider.standardProvider
+    authorizationEndpoint openidConnectProvider.getFullAuthorizationEndpointUrl(session.id)
+    imageUrl openidConnectProvider.imageUrl
+}
+

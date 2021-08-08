@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
+ * Copyright 2020-2021 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,18 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins
+package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect
+
+import static uk.ac.ox.softeng.maurodatamapper.core.web.mapping.UrlMappingActions.DEFAULT_EXCLUDES
 
 class UrlMappings {
 
     static mappings = {
-        // provide plugin url mappings here
+        group '/api', {
+            '/admin/openidConnectProviders'(resources: 'openidConnectProvider', excludes: DEFAULT_EXCLUDES)
+            get '/openidConnectProviders'(controller: 'openidConnectProvider', action: 'index') {
+                openAccess = true
+            }
+        }
     }
 }
