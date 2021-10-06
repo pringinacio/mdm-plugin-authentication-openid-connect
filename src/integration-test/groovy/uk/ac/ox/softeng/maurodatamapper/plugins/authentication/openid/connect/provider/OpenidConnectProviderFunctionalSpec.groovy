@@ -134,7 +134,7 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
 
     String getAdminIndexJson() {
         '''{
-  "count": 3,
+  "count": 2,
   "items": [
     {
       "id": "${json-unit.matches:id}",
@@ -149,13 +149,6 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
       "label": "Keycloak",
       "standardProvider": true,
       "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/29/Keycloak_Logo.png"
-    },
-    {
-      "id": "${json-unit.matches:id}",
-      "lastUpdated": "${json-unit.matches:offsetDateTime}",
-      "label": "Microsoft",
-      "standardProvider": true,
-      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/9/98/Microsoft_logo.jpg"
     }
   ]
 }'''
@@ -556,11 +549,9 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
         verifyResponse(OK, localResponse)
 
         Map<String, String> google = localResponse.body().find {it.label == BootstrapModels.GOOGLE_OPENID_CONNECT_PROVIDER_NAME}
-        Map<String, String> microsoft = localResponse.body().find {it.label == BootstrapModels.MICROSOFT_OPENID_CONNECT_PROVIDER_NAME}
         Map<String, String> keycloak = localResponse.body().find {it.label == BootstrapModels.KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME}
 
         assert google
-        assert microsoft
         assert keycloak
 
         assert google.id
@@ -571,18 +562,6 @@ class OpenidConnectProviderFunctionalSpec extends FunctionalSpec {
         assert authorizationEndpoint.startsWith('https://accounts.google.com/o/oauth2/v2/auth?')
         assert authorizationEndpoint.contains('response_type=code')
         assert authorizationEndpoint.contains('client_id=375980182300-tc8sb8c1jelomnkmvqtkkqpl4g8lkp06.apps.googleusercontent.com')
-        assert authorizationEndpoint.contains('scope=openid+email')
-        assert authorizationEndpoint.find(/state=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
-        assert authorizationEndpoint.find(/nonce=/)
-
-        assert microsoft.id
-        assert microsoft.standardProvider
-        authorizationEndpoint = microsoft.authorizationEndpoint
-        log.info('Microsoft: {}', authorizationEndpoint)
-        assert authorizationEndpoint
-        assert authorizationEndpoint.startsWith('https://login.microsoftonline.com/common/oauth2/authorize?')
-        assert authorizationEndpoint.contains('response_type=code')
-        assert authorizationEndpoint.contains('client_id=microsoftClientId')
         assert authorizationEndpoint.contains('scope=openid+email')
         assert authorizationEndpoint.find(/state=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)
         assert authorizationEndpoint.find(/nonce=/)

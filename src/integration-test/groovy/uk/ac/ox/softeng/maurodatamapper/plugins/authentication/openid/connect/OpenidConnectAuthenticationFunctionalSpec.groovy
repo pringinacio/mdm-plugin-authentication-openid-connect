@@ -90,21 +90,14 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
     @Transactional
     OpenidConnectProvider getKeycloakProvider() {
         OpenidConnectProvider provider = OpenidConnectProvider.findByLabel(BootstrapModels.KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME)
-        provider.getFullAuthorizationEndpointUrl()
+        provider.getFullAuthorizationEndpointUrl(UUID.randomUUID().toString())
         provider
     }
 
     @Transactional
     OpenidConnectProvider getGoogleProvider() {
         OpenidConnectProvider provider = OpenidConnectProvider.findByLabel(BootstrapModels.GOOGLE_OPENID_CONNECT_PROVIDER_NAME)
-        provider.getFullAuthorizationEndpointUrl()
-        provider
-    }
-
-    @Transactional
-    OpenidConnectProvider getMicrosoftProvider() {
-        OpenidConnectProvider provider = OpenidConnectProvider.findByLabel(BootstrapModels.MICROSOFT_OPENID_CONNECT_PROVIDER_NAME)
-        provider.getFullAuthorizationEndpointUrl()
+        provider.getFullAuthorizationEndpointUrl(UUID.randomUUID().toString())
         provider
     }
 
