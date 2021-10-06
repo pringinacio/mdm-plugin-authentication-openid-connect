@@ -29,7 +29,7 @@ import groovy.util.logging.Slf4j
  * @since 02/06/2021
  */
 @Slf4j
-class OpenidConnectIdTokenJwtVerifier extends OpenidConnectTokenJwtVerifier {
+class OpenidConnectIdTokenJwtVerifier extends OpenidConnectJwtVerifier {
 
     final String tokenSessionState
     final String lastKnownSessionState
@@ -48,8 +48,9 @@ class OpenidConnectIdTokenJwtVerifier extends OpenidConnectTokenJwtVerifier {
     Verification buildVerification() {
         Verification verification = super.buildVerification()
             .withClaim('nonce', expectedNonce)
-            .withClaim('session_state', tokenSessionState)
 
+        if (tokenSessionState)
+            verification.withClaim('session_state', tokenSessionState)
 
         if (maxAgeOfAuthentication != null) {
             log.debug('Adding auth_time verification')
@@ -77,7 +78,7 @@ class OpenidConnectIdTokenJwtVerifier extends OpenidConnectTokenJwtVerifier {
         }
 
         // Addtl
-        if (tokenSessionState != lastKnownSessionState) throw new JWTVerificationException('Token session_state must match previous session_state')
+        if (tokenSessionState && tokenSessionState != lastKnownSessionState) throw new JWTVerificationException('Token session_state must match previous session_state')
 
     }
 

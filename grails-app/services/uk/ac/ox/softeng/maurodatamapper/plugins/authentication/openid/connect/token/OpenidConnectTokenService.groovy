@@ -18,21 +18,15 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
-import uk.ac.ox.softeng.maurodatamapper.core.session.SessionService
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.jwt.OpenidConnectIdTokenJwtVerifier
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.jwt.OpenidConnectTokenJwtVerifier
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.jwt.OpenidConnectJwtVerifier
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProviderService
-import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
 
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
-import grails.core.GrailsApplication
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-
-import java.time.Duration
-import javax.servlet.http.HttpSession
 
 @Slf4j
 @Transactional
@@ -76,7 +70,7 @@ class OpenidConnectTokenService {
     }
 
     boolean verifyIdToken(OpenidConnectToken token, String lastKnownSessionState) {
-        OpenidConnectTokenJwtVerifier verifier = new OpenidConnectIdTokenJwtVerifier(token, lastKnownSessionState)
+        OpenidConnectJwtVerifier verifier = new OpenidConnectIdTokenJwtVerifier(token, lastKnownSessionState)
         try {
             verifier.verify()
             true
