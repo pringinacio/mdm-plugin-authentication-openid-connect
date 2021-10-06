@@ -6,6 +6,5 @@ maurodatamapper:
             enabled: false
         microsoft:
             enabled: false
-            tenant: common
         keycloak:
             enabled: false
