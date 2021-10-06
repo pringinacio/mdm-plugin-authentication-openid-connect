@@ -20,10 +20,6 @@ maurodatamapper:
             enabled: true
             clientId: 375980182300-tc8sb8c1jelomnkmvqtkkqpl4g8lkp06.apps.googleusercontent.com
             clientSecret: XBeb-cTftDQxGvW-KMfR0vKR
-        microsoft:
-            enabled: true
-            clientId: microsoftClientId
-            clientSecret: microsoftClientSecret
         keycloak:
             enabled: true
             baseUrl: https://jenkins.cs.ox.ac.uk/auth

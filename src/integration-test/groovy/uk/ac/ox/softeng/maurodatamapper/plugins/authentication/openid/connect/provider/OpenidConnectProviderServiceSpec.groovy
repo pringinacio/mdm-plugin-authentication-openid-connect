@@ -82,7 +82,7 @@ class OpenidConnectProviderServiceSpec extends BaseIntegrationSpec {
         ocp1.label == BootstrapModels.GOOGLE_OPENID_CONNECT_PROVIDER_NAME
 
         and:
-        ocp2.label == BootstrapModels.MICROSOFT_OPENID_CONNECT_PROVIDER_NAME
+        ocp2.label == BootstrapModels.KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME
 
     }
 
@@ -91,7 +91,7 @@ class OpenidConnectProviderServiceSpec extends BaseIntegrationSpec {
         setupData()
 
         expect:
-        openidConnectProviderService.count() == 4
+        openidConnectProviderService.count() == 3
     }
 
     void "test delete"() {
@@ -99,14 +99,14 @@ class OpenidConnectProviderServiceSpec extends BaseIntegrationSpec {
         setupData()
 
         expect:
-        openidConnectProviderService.count() == 4
+        openidConnectProviderService.count() == 3
         OpenidConnectProvider ocp = openidConnectProviderService.get(id)
 
         when:
         openidConnectProviderService.delete(ocp)
 
         then:
-        OpenidConnectProvider.count() == 3
+        OpenidConnectProvider.count() == 2
     }
 
 }

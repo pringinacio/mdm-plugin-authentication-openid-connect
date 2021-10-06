@@ -39,7 +39,7 @@ import java.security.interfaces.RSAPublicKey
  * @since 02/06/2021
  */
 @Slf4j
-class OpenidConnectTokenJwtVerifier {
+class OpenidConnectJwtVerifier {
 
     private JWTVerifier jwtVerifier
 
@@ -47,7 +47,7 @@ class OpenidConnectTokenJwtVerifier {
     final OpenidConnectProvider openidConnectProvider
     boolean initialised
 
-    OpenidConnectTokenJwtVerifier(DecodedJWT decodedToken, OpenidConnectProvider openidConnectProvider) {
+    OpenidConnectJwtVerifier(DecodedJWT decodedToken, OpenidConnectProvider openidConnectProvider) {
         this.decodedToken = decodedToken
         this.openidConnectProvider = openidConnectProvider
         this.initialised = false
@@ -95,10 +95,14 @@ class OpenidConnectTokenJwtVerifier {
                 return Algorithm.ECDSA384((ECPublicKey) jwk.publicKey, null)
             case 'ES512':
                 return Algorithm.ECDSA512((ECPublicKey) jwk.publicKey, null)
-            default:
-                // verification 8 fail here
-                throw new ApiBadRequestException('OCASXX', "Unsupported JWK Algorithm [${jwk.algorithm}] used by provider [${openidConnectProvider.label}]")
-
         }
+        // If no algorithm then its probably Microsoft not meeting the basic standards
+        // Therefore perform some "fall backs", the default expectation for OIC JWT is is actually RS256
+        if (jwk.type == 'RSA') {
+            return Algorithm.RSA256((RSAPublicKey) jwk.publicKey, null)
+        }
+        // verification 8 fail here
+        throw new ApiBadRequestException('OCASXX', "Unsupported JWK Algorithm [${jwk.algorithm}] and JWK type [${jwk.type}] used by provider [${openidConnectProvider.label}]")
     }
+
 }

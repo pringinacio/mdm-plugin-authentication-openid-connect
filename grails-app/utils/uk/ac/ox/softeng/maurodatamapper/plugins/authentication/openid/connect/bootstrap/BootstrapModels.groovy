@@ -58,13 +58,13 @@ class BootstrapModels {
             label: MICROSOFT_OPENID_CONNECT_PROVIDER_NAME,
             createdBy: StandardEmailAddress.ADMIN,
             standardProvider:true,
-            discoveryDocumentUrl: 'https://login.microsoftonline.com/common/.well-known/openid-configuration',
+            discoveryDocumentUrl: "https://login.microsoftonline.com/${openidConnectConfig.accountId}/v2.0/.well-known/openid-configuration",
             clientId: openidConnectConfig.clientId,
             clientSecret: openidConnectConfig.clientSecret,
             imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Microsoft_logo.jpg'
             )
         openidConnectProvider.discoveryDocument = discoveryDocumentService.loadDiscoveryDocumentForOpenidConnectProvider(openidConnectProvider)
-        openidConnectProvider.discoveryDocument.issuer = openidConnectProvider.discoveryDocument.issuer.replace('{tenantid}', openidConnectConfig.clientId)
+        openidConnectProvider.discoveryDocument.issuer = openidConnectProvider.discoveryDocument.issuer.replace('{tenantid}', openidConnectConfig.tenantId)
 
         checkAndSave(messageSource, openidConnectProvider)
         openidConnectProvider

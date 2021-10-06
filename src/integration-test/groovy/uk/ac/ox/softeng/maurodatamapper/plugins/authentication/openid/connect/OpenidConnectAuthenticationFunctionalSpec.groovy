@@ -23,6 +23,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.session.SessionService
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access.OpenidConnectAccessService
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.bootstrap.BootstrapModels
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectToken
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUserService
@@ -67,6 +68,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
     SessionService sessionService
     ServletContext servletContext
     GrailsApplication grailsApplication
+    OpenidConnectProviderService openidConnectProviderService
 
     @OnceBefore
     @Transactional
@@ -88,21 +90,14 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
     @Transactional
     OpenidConnectProvider getKeycloakProvider() {
         OpenidConnectProvider provider = OpenidConnectProvider.findByLabel(BootstrapModels.KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME)
-        provider.getFullAuthorizationEndpointUrl()
+        provider.getFullAuthorizationEndpointUrl(UUID.randomUUID().toString())
         provider
     }
 
     @Transactional
     OpenidConnectProvider getGoogleProvider() {
         OpenidConnectProvider provider = OpenidConnectProvider.findByLabel(BootstrapModels.GOOGLE_OPENID_CONNECT_PROVIDER_NAME)
-        provider.getFullAuthorizationEndpointUrl()
-        provider
-    }
-
-    @Transactional
-    OpenidConnectProvider getMicrosoftProvider() {
-        OpenidConnectProvider provider = OpenidConnectProvider.findByLabel(BootstrapModels.MICROSOFT_OPENID_CONNECT_PROVIDER_NAME)
-        provider.getFullAuthorizationEndpointUrl()
+        provider.getFullAuthorizationEndpointUrl(UUID.randomUUID().toString())
         provider
     }
 
@@ -140,6 +135,21 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         OpenidConnectProvider provider = OpenidConnectProvider.findByLabel(BootstrapModels.KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME)
         provider.authorizationEndpointParameters.maxAge = maxAge
         provider.save(flush: true)
+    }
+
+    @Transactional
+    OpenidConnectProvider createAzureProvider(String ddUrl, String clientId, String clientSecret, String tenantId) {
+        OpenidConnectProvider provider = new OpenidConnectProvider(label: 'Functional Test Azure',
+                                                                   standardProvider: true,
+                                                                   discoveryDocumentUrl: ddUrl,
+                                                                   clientId: clientId,
+                                                                   clientSecret: clientSecret,
+                                                                   createdBy: StandardEmailAddress.FUNCTIONAL_TEST)
+        openidConnectProviderService.loadDiscoveryDocumentIntoOpenidConnectProvider(provider)
+        provider.discoveryDocument.issuer = provider.discoveryDocument.issuer.replace('{tenantid}', tenantId)
+        provider.save(flush: true)
+        provider.getFullAuthorizationEndpointUrl()
+        provider
     }
 
     @Override
@@ -481,27 +491,33 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         given:
         // Manually go to this web URL
         /*
-https://accounts.google.com/o/oauth2/v2/auth?scope=openid+email&response_type=code&state=9329705d-3cd0-4a59-b588-a369d72aaeae&nonce=0c20ec52-b581-4044-a436-25c5fbea141c
-&client_id=375980182300-tc8sb8c1jelomnkmvqtkkqpl4g8lkp06.apps.googleusercontent.com&redirect_uri=https://jenkins.cs.ox.ac.uk
+https://accounts.google.com/o/oauth2/v2/auth?scope=openid+email&response_type=code
+&state=9329705d-3cd0-4a59-b588-a369d72aaeae
+&nonce=0c20ec52-b581-4044-a436-25c5fbea141c
+&client_id=375980182300-tc8sb8c1jelomnkmvqtkkqpl4g8lkp06.apps.googleusercontent.com
+&redirect_uri=https://jenkins.cs.ox.ac.uk
         */
         // Get the redirected URL
         /*
         https://jenkins.cs.ox.ac.uk/?
         state=9329705d-3cd0-4a59-b588-a369d72aaeae
-        &code=4%2F0AY0e-g4c0Mjf20NX6c430OSvXx9cvezF8yQsNQwY0cPn-TZ024JjR--PAdmBafoU4h92qA
+        &code=
         &scope=email+openid+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email
         &authuser=0
         &prompt=consent
         */
-        // Extract the code param and put in the map below
+        // Extract the code and session_state param and put in the map below
         // Run the test
         // Each time you run you will need to get a new code
+        //
+        // Comment out line 50 in OpenidConnectIdTokenJwtVerifier otherwise the token validation wont work
         Map<String, String> authorizeResponse = [
             openidConnectProviderId: googleProvider.id.toString(),
             nonce                  : '0c20ec52-b581-4044-a436-25c5fbea141c',
             redirect_uri           : 'https://jenkins.cs.ox.ac.uk',
             state                  : '9329705d-3cd0-4a59-b588-a369d72aaeae',
-            code                   : '4%2F0AY0e-g6w7HkOLFe3kfPV5BVyoIqpwQ4McRhV_UGr8RxnQXvpVvAMPSkROqTtyM1cCm6KBA',
+            session_state          : '',
+            code                   : '',
         ]
 
         when: 'in call made to login'
@@ -518,6 +534,64 @@ https://accounts.google.com/o/oauth2/v2/auth?scope=openid+email&response_type=co
         user.firstName == 'Ollie'
         user.lastName == 'Freeman'
         user.createdBy == 'openidConnectAuthentication@jenkins.cs.ox.ac.uk'
+    }
+
+    @Ignore('Manual testing only')
+    void 'AZURE01 - test logging in with valid authentication code and parameters with user'() {
+        given:
+        // You will need to populate the following to create the azure provider
+        // clientId is the "Application (client) ID"
+        // tenantId is the "Directory (tenant) ID"
+        // clientSecret is from creating a new secret
+        OpenidConnectProvider azureProvider = createAzureProvider(
+            'https://login.microsoftonline.com/organizations/v2.0/.well-known/openid-configuration',
+            '',
+            '',
+            '')
+        assert azureProvider.id
+
+        // Manually go to this web URL (populate the client id)
+        /*
+https://login.microsoftonline.com/bc88d555-3533-4d23-a99b-9f034c0fe6fe/oauth2/v2.0/authorize?scope=openid+email+profile&response_type=code
+&state=402d42f8-56fc-46f3-b6c2-4303fdaff689
+&nonce=0c20ec52-b581-4044-a436-25c5fbea141c
+&client_id=
+&redirect_uri=https://jenkins.cs.ox.ac.uk
+        */
+        // Get the redirected URL
+        /*
+        https://jenkins.cs.ox.ac.uk/?
+        code=
+        &session_state=
+        */
+        // Extract the code and session_state param and put in the map below
+        // Run the test
+        // Each time you run you will need to get a new code
+        //
+        // Comment out line 50 in OpenidConnectIdTokenJwtVerifier otherwise the token validation wont work
+        Map<String, String> authorizeResponse = [
+            openidConnectProviderId: azureProvider.id.toString(),
+            nonce                  : '0c20ec52-b581-4044-a436-25c5fbea141c',
+            redirect_uri           : 'https://jenkins.cs.ox.ac.uk',
+            state                  : '402d42f8-56fc-46f3-b6c2-4303fdaff689',
+            session_state          : '',
+            code                   : '',
+        ]
+
+        when: 'in call made to login'
+        POST('login?scheme=openIdConnect', authorizeResponse)
+
+        then:
+        verifyResponse(OK, response)
+
+        when: 'check user has been created'
+        CatalogueUser user = getUser('maurodatamapper@outlook.com')
+
+        then:
+        user
+        user.firstName == 'Oliver'
+        user.lastName == 'Freeman'
+        user.createdBy == 'openidConnectAuthentication@login.microsoftonline.com'
     }
 
     Map<String, String> authoriseAgainstKeyCloak(String username = 'mdm-admin', String password = 'mdm-admin', String nonce = null) {
