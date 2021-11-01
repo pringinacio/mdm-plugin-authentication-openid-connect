@@ -552,7 +552,7 @@ https://accounts.google.com/o/oauth2/v2/auth?scope=openid+email&response_type=co
         user.createdBy == 'openidConnectAuthentication@jenkins.cs.ox.ac.uk'
     }
 
-//    @Ignore('Manual testing only')
+    @Ignore('Manual testing only')
     void 'AZURE01 - test logging in with valid authentication code and parameters with user'() {
         given:
         // You will need to populate the following to create the azure provider
