@@ -81,6 +81,7 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
             return null
         }
 
+        log.debug('Requesting token\n{}', authorizationResponseParameters.toString(session.id, openidConnectProvider.label))
         Map<String, Object> responseBody = openidConnectProviderService.loadTokenFromOpenidConnectProvider(openidConnectProvider,
                                                                                                            openidConnectProvider.getAccessTokenRequestParameters(
                                                                                                                authorizationResponseParameters.code,
@@ -100,6 +101,7 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
 
         OpenidConnectToken token = openidConnectTokenService.createToken(openidConnectProvider, responseBody, session.id)
 
+        log.debug('Verifying token for session {}', session.id)
         if (!openidConnectTokenService.verifyIdToken(token, authorizationResponseParameters.sessionState)) {
             return null
         }

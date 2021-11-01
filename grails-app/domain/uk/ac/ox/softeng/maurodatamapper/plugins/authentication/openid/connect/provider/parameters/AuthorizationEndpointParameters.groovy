@@ -25,10 +25,13 @@ import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.pa
 import uk.ac.ox.softeng.maurodatamapper.security.utils.SecurityUtils
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.CreatorAware
 
+import groovy.util.logging.Slf4j
+
 
 /**
  * See <a href=https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint>OpenId Connect Specification</a>
  */
+@Slf4j
 class AuthorizationEndpointParameters implements CreatorAware {
 
     UUID id
@@ -87,6 +90,9 @@ class AuthorizationEndpointParameters implements CreatorAware {
     }
 
     Map<String, String> getAsMap(String sessionId) {
+        String nonce = new String(SecurityUtils.getHash(sessionId))
+        String state =  UUID.randomUUID().toString()
+        log.debug('Authorization Endpoint Parameters for {} generated with nonce {} and state {}', sessionId, nonce, state)
         [scope        : scope,
          response_type: responseType,
          client_id    : clientId,
@@ -98,8 +104,8 @@ class AuthorizationEndpointParameters implements CreatorAware {
          id_token_hint: idTokenHint,
          login_hint   : loginHint,
          acr_values   : acrValues,
-         state        : UUID.randomUUID().toString(),
-         nonce        : new String(SecurityUtils.getHash(sessionId))
+         state        : state,
+         nonce        : nonce,
         ].findAll {k, v -> v}
     }
 }

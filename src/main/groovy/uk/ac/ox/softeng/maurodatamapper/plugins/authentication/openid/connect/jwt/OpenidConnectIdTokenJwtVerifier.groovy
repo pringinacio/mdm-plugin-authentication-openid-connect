@@ -35,6 +35,7 @@ class OpenidConnectIdTokenJwtVerifier extends OpenidConnectJwtVerifier {
     final String lastKnownSessionState
     final Long maxAgeOfAuthentication
     final String expectedNonce
+    final String sessionId
 
     OpenidConnectIdTokenJwtVerifier(OpenidConnectToken token, String lastKnownSessionState) {
         super(token.decodedIdToken, token.openidConnectProvider)
@@ -42,6 +43,7 @@ class OpenidConnectIdTokenJwtVerifier extends OpenidConnectJwtVerifier {
         this.lastKnownSessionState = lastKnownSessionState
         this.maxAgeOfAuthentication = openidConnectProvider.authorizationEndpointParameters.maxAge
         this.expectedNonce = new String(SecurityUtils.getHash(token.sessionId))
+        this.sessionId = token.sessionId
     }
 
     @Override
@@ -82,4 +84,14 @@ class OpenidConnectIdTokenJwtVerifier extends OpenidConnectJwtVerifier {
 
     }
 
+    String getDecodedTokenVerificationString() {
+        new StringBuilder(super.getDecodedTokenVerificationString())
+            .append('\n  Nonce: ').append(decodedToken.getClaim('nonce')).append(' <=> ').append(expectedNonce)
+            .append('\n  Session State: ').append(decodedToken.getClaim('session_state')).append(' <=> ').append(tokenSessionState)
+            .append('\n  Session State: ').append(tokenSessionState).append(' <=> (last known) ').append(lastKnownSessionState)
+            .append('\n  Max Age: ').append(decodedToken.getClaim('auth_time')).append(' <=> ').append(maxAgeOfAuthentication != null)
+            .append('\n  Session: ').append('NOT STORED').append(' <=> ').append(sessionId)
+            .append('\n  Regenerated nonce: ').append(new String(SecurityUtils.getHash(sessionId)))
+            .toString()
+    }
 }

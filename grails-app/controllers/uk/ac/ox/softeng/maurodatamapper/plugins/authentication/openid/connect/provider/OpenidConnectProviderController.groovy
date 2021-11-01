@@ -21,7 +21,9 @@ import uk.ac.ox.softeng.maurodatamapper.core.controller.EditLoggingController
 
 import grails.gorm.transactions.Transactional
 import grails.web.servlet.mvc.GrailsParameterMap
+import groovy.util.logging.Slf4j
 
+@Slf4j
 class OpenidConnectProviderController extends EditLoggingController<OpenidConnectProvider> {
     static responseFormats = ['json', 'xml']
 
@@ -38,6 +40,7 @@ class OpenidConnectProviderController extends EditLoggingController<OpenidConnec
         // The new grails-views code sets the modelAndView object rather than writing the response
         // Therefore if thats written then we dont want to try and re-write it
         if (response.isCommitted() || modelAndView) return
+        log.debug('Public request for OIC providers for session {}', session.id)
         respond res, [
             view : (params as GrailsParameterMap).boolean('openAccess') ? 'publicIndex' : 'index',
             model: [session: session]

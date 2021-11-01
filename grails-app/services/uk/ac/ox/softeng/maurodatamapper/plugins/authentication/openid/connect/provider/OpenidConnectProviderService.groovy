@@ -78,7 +78,7 @@ class OpenidConnectProviderService {
 
 
     Map<String, Object> loadTokenFromOpenidConnectProvider(OpenidConnectProvider openidConnectProvider, Map<String, String> requestBody) {
-        log.debug('Loading token from OC provider')
+        log.debug('Loading token from OIC provider')
         URL tokenEndpoint = UriBuilder.of(openidConnectProvider.discoveryDocument.tokenEndpoint).build().toURL()
 
         HttpClient client = HttpClient.create(getClientHostUrl(tokenEndpoint))
@@ -91,7 +91,7 @@ class OpenidConnectProviderService {
 
 
     Map<String, Object> loadUserInfoFromOpenidConnectProvider(OpenidConnectProvider openidConnectProvider, String accessToken) {
-        log.debug('Loading user info from OC provider')
+        log.debug('Loading user info from OIC provider')
         URL userInfoEndpoint = UriBuilder.of(openidConnectProvider.discoveryDocument.userinfoEndpoint).build().toURL()
 
         HttpClient client = HttpClient.create(getClientHostUrl(userInfoEndpoint))
@@ -102,7 +102,7 @@ class OpenidConnectProviderService {
     }
 
     boolean revokeTokenForOpenidConnectProvider(OpenidConnectProvider openidConnectProvider, Map<String, String> requestBody) {
-        log.debug('Revoking token from OC provider')
+        log.debug('Revoking token from OIC provider')
         URL endSessionEndpoint = UriBuilder.of(openidConnectProvider.discoveryDocument.endSessionEndpoint).build().toURL()
 
         HttpClient client = HttpClient.create(getClientHostUrl(endSessionEndpoint))
