@@ -11,8 +11,8 @@ json {
     responseType authorizationEndpointParameters.responseType
 //    clientId authenticationRequestParameters.clientId
     if (authorizationEndpointParameters.responseMode) responseMode authorizationEndpointParameters.responseMode
-    if (authorizationEndpointParameters.display) display authorizationEndpointParameters.display?.toString()?.toLowerCase()
-    if (authorizationEndpointParameters.prompt) prompt authorizationEndpointParameters.prompt?.toString()?.toLowerCase()
+    if (authorizationEndpointParameters.display) display authorizationEndpointParameters.display?.toString()
+    if (authorizationEndpointParameters.prompt) prompt authorizationEndpointParameters.prompt?.toString()
     if (authorizationEndpointParameters.maxAge) maxAge authorizationEndpointParameters.maxAge == null ?: authorizationEndpointParameters.maxAge.toString()
     if (authorizationEndpointParameters.uiLocales) uiLocales authorizationEndpointParameters.uiLocales
     if (authorizationEndpointParameters.idTokenHint) idTokenHint authorizationEndpointParameters.idTokenHint
