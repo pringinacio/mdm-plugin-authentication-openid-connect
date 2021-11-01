@@ -107,12 +107,18 @@ class OpenidConnectJwtVerifier {
     }
 
     String getDecodedTokenVerificationString() {
-        new StringBuilder('OIC Token')
+        StringBuilder sb = new StringBuilder('OIC Token')
             .append('\n  Algorithm: ').append(decodedToken.algorithm)
-            .append('\n  Issuer: ').append(decodedToken.issuer).append(' <=> ').append(openidConnectProvider.discoveryDocument.issuer)
-            .append('\n  Audience: ').append(decodedToken.audience).append(' <=> ').append(openidConnectProvider.clientId)
-            .append('\n  Email: ').append(decodedToken.getClaim('email')).append(' <=> ').append('EXISTS')
-            .append('\n  AZP: ').append(decodedToken.getClaim('azp')).append(' <=> (audience > 1) ').append(openidConnectProvider.clientId)
-            .toString()
+            .append('\n  Issuer: T> ').append(decodedToken.issuer)
+            .append('\n          E> ').append(openidConnectProvider.discoveryDocument.issuer)
+            .append('\n  Audience: T> ').append(decodedToken.audience)
+            .append('\n            E> ').append(openidConnectProvider.clientId)
+            .append('\n  Email(must exist): ').append(decodedToken.getClaim('email'))
+
+        if (decodedToken.audience.size() > 1) {
+            sb.append('\n  AZP(audience > 1): T> ').append(decodedToken.getClaim('azp'))
+                .append('\n                     E> ').append(openidConnectProvider.clientId)
+        }
+        sb.toString()
     }
 }

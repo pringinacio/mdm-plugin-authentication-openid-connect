@@ -85,13 +85,23 @@ class OpenidConnectIdTokenJwtVerifier extends OpenidConnectJwtVerifier {
     }
 
     String getDecodedTokenVerificationString() {
-        new StringBuilder(super.getDecodedTokenVerificationString())
-            .append('\n  Nonce: ').append(decodedToken.getClaim('nonce')).append(' <=> ').append(expectedNonce)
-            .append('\n  Session State: ').append(decodedToken.getClaim('session_state')).append(' <=> ').append(tokenSessionState)
-            .append('\n  Session State: ').append(tokenSessionState).append(' <=> (last known) ').append(lastKnownSessionState)
-            .append('\n  Max Age: ').append(decodedToken.getClaim('auth_time')).append(' <=> ').append(maxAgeOfAuthentication != null)
-            .append('\n  Session: ').append('NOT STORED').append(' <=> ').append(sessionId)
-            .append('\n  Regenerated nonce: ').append(new String(SecurityUtils.getHash(sessionId)))
+        StringBuilder sb = new StringBuilder(super.getDecodedTokenVerificationString())
+            .append('\n  Nonce: T> ').append(decodedToken.getClaim('nonce').asString().bytes.toString())
+            .append('\n         E> ').append(expectedNonce.bytes.toString())
+
+        if (tokenSessionState) {
+            sb.append('\n  Session State: T> ').append(decodedToken.getClaim('session_state'))
+                .append('\n                 E> ').append(tokenSessionState)
+                .append('\n  Session State(last known): T> ').append(tokenSessionState)
+                .append('\n                             E> ').append(lastKnownSessionState)
+        }
+
+        if (maxAgeOfAuthentication != null) {
+            sb.append('\n  Max Age: T> ').append(decodedToken.getClaim('auth_time'))
+                .append('\n           E> ').append(maxAgeOfAuthentication != null)
+        }
+        sb.append('\n  Session: T> ').append('NOT STORED')
+            .append('\n           E> ').append(sessionId)
             .toString()
     }
 }
