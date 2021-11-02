@@ -22,7 +22,7 @@ import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.CreatorAwareCon
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.parameters.Display
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.parameters.Prompt
-import uk.ac.ox.softeng.maurodatamapper.security.utils.SecurityUtils
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.security.Utils
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.CreatorAware
 
 import groovy.util.logging.Slf4j
@@ -90,7 +90,7 @@ class AuthorizationEndpointParameters implements CreatorAware {
     }
 
     Map<String, String> getAsMap(String sessionId) {
-        byte[] nonce = SecurityUtils.getHash(sessionId)
+        String nonce = Utils.generateNonceUuid(sessionId)
         String state =  UUID.randomUUID().toString()
         log.debug('Authorization Endpoint Parameters for {} generated\n  nonce: {}\n  state: {}', sessionId, nonce, state)
         [scope        : scope,
