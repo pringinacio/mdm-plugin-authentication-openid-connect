@@ -87,8 +87,8 @@ class OpenidConnectIdTokenJwtVerifier extends OpenidConnectJwtVerifier {
 
     String getDecodedTokenVerificationString() {
         StringBuilder sb = new StringBuilder(super.getDecodedTokenVerificationString())
-            .append('\n  Nonce: T> ').append(decodedToken.getClaim('nonce').asString().bytes.toString())
-            .append('\n         E> ').append(expectedNonce.bytes.toString())
+            .append('\n  Nonce: T> ').append(decodedToken.getClaim('nonce').asString())
+            .append('\n         E> ').append(expectedNonce)
 
         if (tokenSessionState) {
             sb.append('\n  Session State: T> ').append(decodedToken.getClaim('session_state'))
