@@ -78,7 +78,7 @@ class OpenidConnectJwtVerifier {
     @SuppressWarnings('GroovyVariableNotAssigned')
     void verify() throws JWTVerificationException {
         if (!initialised) initialise()
-        log.debug('OIC token to be verified\n{}', decodedTokenVerificationString)
+        log.trace('OIC token to be verified\n{}', decodedTokenVerificationString)
         jwtVerifier.verify(decodedToken)
     }
 

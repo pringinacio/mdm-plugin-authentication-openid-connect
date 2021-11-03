@@ -92,7 +92,7 @@ class AuthorizationEndpointParameters implements CreatorAware {
     Map<String, String> getAsMap(String sessionId) {
         String nonce = Utils.generateNonceUuid(sessionId)
         String state =  UUID.randomUUID().toString()
-        log.debug('Authorization Endpoint Parameters for {} generated\n  nonce: {}\n  state: {}', sessionId, nonce, state)
+        log.trace('Authorization Endpoint Parameters for {} generated\n  nonce: {}\n  state: {}', sessionId, nonce, state)
         [scope        : scope,
          response_type: responseType,
          client_id    : clientId,

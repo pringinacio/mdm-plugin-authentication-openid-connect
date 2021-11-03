@@ -81,7 +81,7 @@ class OpenidConnectAuthenticationService implements AuthenticationSchemeService 
             return null
         }
 
-        log.debug('Requesting token\n{}', authorizationResponseParameters.toString(session.id, openidConnectProvider.label))
+        log.trace('Requesting token\n{}', authorizationResponseParameters.toString(session.id, openidConnectProvider.label))
         Map<String, Object> responseBody = openidConnectProviderService.loadTokenFromOpenidConnectProvider(openidConnectProvider,
                                                                                                            openidConnectProvider.getAccessTokenRequestParameters(
                                                                                                                authorizationResponseParameters.code,
