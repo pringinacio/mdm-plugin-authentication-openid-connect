@@ -17,8 +17,8 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.jwt
 
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.security.Utils
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectToken
-import uk.ac.ox.softeng.maurodatamapper.security.utils.SecurityUtils
 
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.Verification
@@ -35,13 +35,16 @@ class OpenidConnectIdTokenJwtVerifier extends OpenidConnectJwtVerifier {
     final String lastKnownSessionState
     final Long maxAgeOfAuthentication
     final String expectedNonce
+    final String sessionId
 
     OpenidConnectIdTokenJwtVerifier(OpenidConnectToken token, String lastKnownSessionState) {
         super(token.decodedIdToken, token.openidConnectProvider)
         this.tokenSessionState = token.sessionState
         this.lastKnownSessionState = lastKnownSessionState
         this.maxAgeOfAuthentication = openidConnectProvider.authorizationEndpointParameters.maxAge
-        this.expectedNonce = new String(SecurityUtils.getHash(token.sessionId))
+        this.sessionId = token.sessionId
+        this.expectedNonce = Utils.generateNonceUuid(sessionId)
+
     }
 
     @Override
@@ -82,4 +85,24 @@ class OpenidConnectIdTokenJwtVerifier extends OpenidConnectJwtVerifier {
 
     }
 
+    String getDecodedTokenVerificationString() {
+        StringBuilder sb = new StringBuilder(super.getDecodedTokenVerificationString())
+            .append('\n  Nonce: T> ').append(decodedToken.getClaim('nonce').asString())
+            .append('\n         E> ').append(expectedNonce)
+
+        if (tokenSessionState) {
+            sb.append('\n  Session State: T> ').append(decodedToken.getClaim('session_state'))
+                .append('\n                 E> ').append(tokenSessionState)
+                .append('\n  Session State(last known): T> ').append(tokenSessionState)
+                .append('\n                             E> ').append(lastKnownSessionState)
+        }
+
+        if (maxAgeOfAuthentication != null) {
+            sb.append('\n  Max Age: T> ').append(decodedToken.getClaim('auth_time'))
+                .append('\n           E> ').append(maxAgeOfAuthentication != null)
+        }
+        sb.append('\n  Session: T> ').append('NOT STORED')
+            .append('\n           E> ').append(sessionId)
+            .toString()
+    }
 }

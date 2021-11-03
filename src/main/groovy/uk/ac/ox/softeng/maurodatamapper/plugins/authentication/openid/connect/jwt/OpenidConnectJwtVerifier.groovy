@@ -78,6 +78,7 @@ class OpenidConnectJwtVerifier {
     @SuppressWarnings('GroovyVariableNotAssigned')
     void verify() throws JWTVerificationException {
         if (!initialised) initialise()
+        log.trace('OIC token to be verified\n{}', decodedTokenVerificationString)
         jwtVerifier.verify(decodedToken)
     }
 
@@ -105,4 +106,19 @@ class OpenidConnectJwtVerifier {
         throw new ApiBadRequestException('OCASXX', "Unsupported JWK Algorithm [${jwk.algorithm}] and JWK type [${jwk.type}] used by provider [${openidConnectProvider.label}]")
     }
 
+    String getDecodedTokenVerificationString() {
+        StringBuilder sb = new StringBuilder('OIC Token')
+            .append('\n  Algorithm: ').append(decodedToken.algorithm)
+            .append('\n  Issuer: T> ').append(decodedToken.issuer)
+            .append('\n          E> ').append(openidConnectProvider.discoveryDocument.issuer)
+            .append('\n  Audience: T> ').append(decodedToken.audience)
+            .append('\n            E> ').append(openidConnectProvider.clientId)
+            .append('\n  Email(must exist): ').append(decodedToken.getClaim('email'))
+
+        if (decodedToken.audience.size() > 1) {
+            sb.append('\n  AZP(audience > 1): T> ').append(decodedToken.getClaim('azp'))
+                .append('\n                     E> ').append(openidConnectProvider.clientId)
+        }
+        sb.toString()
+    }
 }

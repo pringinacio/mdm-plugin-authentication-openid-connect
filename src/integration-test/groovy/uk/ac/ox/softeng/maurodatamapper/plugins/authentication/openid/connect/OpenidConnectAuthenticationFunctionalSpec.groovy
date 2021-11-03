@@ -27,6 +27,7 @@ import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.pr
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectToken
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUserService
+import uk.ac.ox.softeng.maurodatamapper.security.utils.SecurityUtils
 import uk.ac.ox.softeng.maurodatamapper.test.functional.BaseFunctionalSpec
 
 import grails.core.GrailsApplication
@@ -41,7 +42,9 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.FormElement
 import spock.lang.Ignore
+import spock.lang.Shared
 
+import java.nio.charset.Charset
 import java.time.Duration
 import javax.servlet.ServletContext
 import javax.servlet.http.HttpSession
@@ -70,10 +73,23 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
     GrailsApplication grailsApplication
     OpenidConnectProviderService openidConnectProviderService
 
+    @Shared
+    String sessionId
+
+    @Shared
+    byte[] nonce
+
+    @Shared
+    String urlEncodedNonce
+
     @OnceBefore
     @Transactional
     def checkAndSetupData() {
-
+        sessionId = 'cdb2fd10-1021-4758-abb9-c1e9e4eb0c19'
+        //nonce = SecurityUtils.getHash(sessionId)
+        nonce = [124, 70, 127, -33, 91, 53, -18, 47, -92, -30, -52, -5, 34, -64, -61, -97, 82, -97, 19, -99, -42, -39, -84, -43, 0, -32, -70, -70, 123, -1, 114, 106]
+       //urlEncodedNonce = URLEncoder.encode(new String(nonce), Charset.defaultCharset())
+        urlEncodedNonce = '%7CF%7F%EF%BF%BD%5B5%EF%BF%BD%2F%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%22%EF%BF%BD%C3%9FR%EF%BF%BD%13%EF%BF%BD%EF%BF%BD%D9%AC%EF%BF%BD%00%E0%BA%BA%7B%EF%BF%BDrj'
     }
 
     @Transactional
@@ -90,14 +106,14 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
     @Transactional
     OpenidConnectProvider getKeycloakProvider() {
         OpenidConnectProvider provider = OpenidConnectProvider.findByLabel(BootstrapModels.KEYCLOAK_OPENID_CONNECT_PROVIDER_NAME)
-        provider.getFullAuthorizationEndpointUrl(UUID.randomUUID().toString())
+        provider.getFullAuthorizationEndpointUrl(sessionId)
         provider
     }
 
     @Transactional
     OpenidConnectProvider getGoogleProvider() {
         OpenidConnectProvider provider = OpenidConnectProvider.findByLabel(BootstrapModels.GOOGLE_OPENID_CONNECT_PROVIDER_NAME)
-        provider.getFullAuthorizationEndpointUrl(UUID.randomUUID().toString())
+        provider.getFullAuthorizationEndpointUrl(sessionId)
         provider
     }
 
@@ -148,7 +164,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         openidConnectProviderService.loadDiscoveryDocumentIntoOpenidConnectProvider(provider)
         provider.discoveryDocument.issuer = provider.discoveryDocument.issuer.replace('{tenantid}', tenantId)
         provider.save(flush: true)
-        provider.getFullAuthorizationEndpointUrl()
+        provider.getFullAuthorizationEndpointUrl(sessionId)
         provider
     }
 
@@ -493,7 +509,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
         /*
 https://accounts.google.com/o/oauth2/v2/auth?scope=openid+email&response_type=code
 &state=9329705d-3cd0-4a59-b588-a369d72aaeae
-&nonce=0c20ec52-b581-4044-a436-25c5fbea141c
+&nonce=%7CF%7F%EF%BF%BD%5B5%EF%BF%BD%2F%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%22%EF%BF%BD%C3%9FR%EF%BF%BD%13%EF%BF%BD%EF%BF%BD%D9%AC%EF%BF%BD%00%E0%BA%BA%7B%EF%BF%BDrj
 &client_id=375980182300-tc8sb8c1jelomnkmvqtkkqpl4g8lkp06.apps.googleusercontent.com
 &redirect_uri=https://jenkins.cs.ox.ac.uk
         */
@@ -513,7 +529,7 @@ https://accounts.google.com/o/oauth2/v2/auth?scope=openid+email&response_type=co
         // Comment out line 50 in OpenidConnectIdTokenJwtVerifier otherwise the token validation wont work
         Map<String, String> authorizeResponse = [
             openidConnectProviderId: googleProvider.id.toString(),
-            nonce                  : '0c20ec52-b581-4044-a436-25c5fbea141c',
+            nonce                  : urlEncodedNonce,
             redirect_uri           : 'https://jenkins.cs.ox.ac.uk',
             state                  : '9329705d-3cd0-4a59-b588-a369d72aaeae',
             session_state          : '',
@@ -545,18 +561,14 @@ https://accounts.google.com/o/oauth2/v2/auth?scope=openid+email&response_type=co
         // clientSecret is from creating a new secret
         OpenidConnectProvider azureProvider = createAzureProvider(
             'https://login.microsoftonline.com/organizations/v2.0/.well-known/openid-configuration',
-            '',
-            '',
-            '')
+            '06a7cf73-c0a1-4ecc-9b6a-10f389331525',
+            'df.7Q~KU6TjBhilGQW45ZtruZBMTe98bpxjoh',
+            'bc88d555-3533-4d23-a99b-9f034c0fe6fe')
         assert azureProvider.id
 
         // Manually go to this web URL (populate the client id)
         /*
-https://login.microsoftonline.com/bc88d555-3533-4d23-a99b-9f034c0fe6fe/oauth2/v2.0/authorize?scope=openid+email+profile&response_type=code
-&state=402d42f8-56fc-46f3-b6c2-4303fdaff689
-&nonce=0c20ec52-b581-4044-a436-25c5fbea141c
-&client_id=
-&redirect_uri=https://jenkins.cs.ox.ac.uk
+https://login.microsoftonline.com/bc88d555-3533-4d23-a99b-9f034c0fe6fe/oauth2/v2.0/authorize?scope=openid+email+profile&response_type=code&state=402d42f8-56fc-46f3-b6c2-4303fdaff689&nonce=%7CF%7F%EF%BF%BD%5B5%EF%BF%BD%2F%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%22%EF%BF%BD%C3%9FR%EF%BF%BD%13%EF%BF%BD%EF%BF%BD%D9%AC%EF%BF%BD%00%E0%BA%BA%7B%EF%BF%BDrjc&client_id=06a7cf73-c0a1-4ecc-9b6a-10f389331525&redirect_uri=https://jenkins.cs.ox.ac.uk
         */
         // Get the redirected URL
         /*
@@ -571,11 +583,11 @@ https://login.microsoftonline.com/bc88d555-3533-4d23-a99b-9f034c0fe6fe/oauth2/v2
         // Comment out line 50 in OpenidConnectIdTokenJwtVerifier otherwise the token validation wont work
         Map<String, String> authorizeResponse = [
             openidConnectProviderId: azureProvider.id.toString(),
-            nonce                  : '0c20ec52-b581-4044-a436-25c5fbea141c',
+            nonce                  : new String(nonce),
             redirect_uri           : 'https://jenkins.cs.ox.ac.uk',
             state                  : '402d42f8-56fc-46f3-b6c2-4303fdaff689',
-            session_state          : '',
-            code                   : '',
+            session_state          : '71ec1bf4-b1ce-4ccf-8f6a-eb0b60580f4a',
+            code                   : '0.AS8AVdWIvDM1I02pm58DTA_m_nPPpwahwMxOm2oQ84kzFSUvAKc.AQABAAIAAAD--DLA3VO7QrddgJg7WevrMx59GcOKw2uCwZl9KNPM4BXQPsJ6oP2G8TucnveJhWiLMk0LGyrnp5a8xO_GmPdPDWvipbbEQu8Z07lvkhq0XtJ1ztVUP3wvDjtNm2R828_Mo1CxJmBHEDl768EZzRoE2B8wrXrAZPt_b9_CKRAOZAV8nJQOF2Xl3DlHvjNB9xu4yiNCkou-51JfkS5mieUhvr7Ptk9rFxaje4FC5x0CDvO6TlsY7AVGZIthUd6I5f3DE04TaYDskHsRi3DQ6K9Rfm6BhwJQ7-g-BUfW6AVKawspAhtLMgLvD-v14EF2J5qdjjSIeoKlDdyA-sDitVSbDpgEeL2yRaE0ufdDmMeC1kRjyWNYdPSUCsAYXBhusRPutgxe96NGiBkIpVR7c8tlPp_FMsF_j1jFddMqE-hOBSXR-2OotVA4RGdlZ2ILTvOPeGlU_huxfKtrjf8sgDzz1emdPToiwYG77kKImzd8ZbXjaIyspUv0TuMUnCLcYzE8NGYCFHSP91hX65mFMW6YIkT8dNY43VKiJOKepxJPEAyB9DVTECy1fPJGqj1mFbq_ocNPbBdw0ar42Tca8hB1I2vMuWSRYJvsjedUct51aE_ouuVz4V4uCY6xBVXNMcYoR2tdYrcK1xTVeXU023mH1fy9AWyglUeku9h_hUJMPSVfSv-gM1ovCkXm1z34YAJv-Sg3tzOuRrCRdEz_I8gWC2cs6c8Hiw5mpPtBIrY9rem_t_S4QLbC5b0iu6-M77nuAELbA2MHBrMuwmigpAQ4ljxdJogHR_Y4UJn9VE3Xtw2DBh5ZJtoURiPdTk2vdqDaqSCmJ4KsduhWjt8dwdih5bdLAYXiC8gBSfFZybES1YKabwRhv9bPPHelCCbxaWAg2SwIyVDCv4HFV_RShxvbdDdcxG0oDbsvq9oDZNtZiN7NB6gkG0KzrvuCgWBU5LH2kXkcM1Nw8Tm-fkeid7BMRkkN8z1AUzmdB2uwilycaRmFfXCVU9bA_RSQN4mzCW66PszLLVdRO7k5dKI3EnRm62NbdeU5hVStXtOgrva53b7cGYMpfmdJ84TbB-4IPpMQcWHtimm-r0vvyipwwxQLQS3f4jcZyvBRRO4UbOjYvsIAvtEaeDNaeeO4IG4uS-QvQi5jTgVyWy1Aqxot9iiZUngSJRFJ85UvY9XpaovZkPDZP04kwtqXfhEHhxcwcl3ctv8PcA8nBihRTBwm546VqUd-CdQtwz8um7lG6pYZPwHL7ObWYYYpn4HxmQimbzkgAA',
         ]
 
         when: 'in call made to login'
