@@ -18,9 +18,9 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.details
 
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
-import uk.ac.ox.softeng.maurodatamapper.traits.domain.CreatorAware
+import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
-class DiscoveryDocument implements CreatorAware{
+class DiscoveryDocument implements MdmDomain{
 
     UUID id
     String issuer
@@ -46,5 +46,15 @@ class DiscoveryDocument implements CreatorAware{
     @Override
     String getDomainType() {
         DiscoveryDocument.simpleName
+    }
+
+    @Override
+    String getPathPrefix() {
+        return null
+    }
+
+    @Override
+    String getPathIdentifier() {
+        return null
     }
 }

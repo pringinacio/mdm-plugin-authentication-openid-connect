@@ -25,7 +25,7 @@ import org.springframework.boot.web.servlet.ServletListenerRegistrationBean
 class MdmPluginAuthenticationOpenidConnectGrailsPlugin extends Plugin {
 
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "4.0.1 > *"
+    def grailsVersion = '5.1.2 > *'
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
         "grails-app/views/error.gsp"
@@ -61,8 +61,8 @@ This plugin implements OpenID Connect integration.
     def scm = [url: "https://github.com/mauroDataMapper-plugins/mdm-plugin-fhir"]
 
     def dependsOn = [
-        mdmCore    : '4.5.0 > *',
-        mdmSecurity: '4.5.0 > *'
+        mdmCore    : '5.0.0 > *',
+        mdmSecurity: '5.0.0 > *'
     ]
 
     Closure doWithSpring() {

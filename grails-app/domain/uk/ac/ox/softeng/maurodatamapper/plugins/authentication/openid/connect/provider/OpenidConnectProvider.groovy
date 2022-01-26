@@ -18,17 +18,17 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider
 
 import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.CallableConstraints
-import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.CreatorAwareConstraints
+import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.MdmDomainConstraints
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.details.DiscoveryDocument
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.parameters.AuthorizationEndpointParameters
-import uk.ac.ox.softeng.maurodatamapper.traits.domain.CreatorAware
+import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
 import grails.gorm.DetachedCriteria
 import grails.rest.Resource
 import io.micronaut.http.uri.UriBuilder
 
 @Resource(readOnly = false, formats = ['json', 'xml'])
-class OpenidConnectProvider implements CreatorAware {
+class OpenidConnectProvider implements MdmDomain {
 
     UUID id
     String label
@@ -44,7 +44,7 @@ class OpenidConnectProvider implements CreatorAware {
     String imageUrl
 
     static constraints = {
-        CallableConstraints.call(CreatorAwareConstraints, delegate)
+        CallableConstraints.call(MdmDomainConstraints, delegate)
         label unique: true, blank: false
         discoveryDocumentUrl blank: false, url: true, nullable: true, validator: {val, obj ->
             if (obj.standardProvider && !val) return ['default.null.message']
@@ -66,6 +66,16 @@ class OpenidConnectProvider implements CreatorAware {
     @Override
     String getDomainType() {
         OpenidConnectProvider.simpleName
+    }
+
+    @Override
+    String getPathPrefix() {
+        null
+    }
+
+    @Override
+    String getPathIdentifier() {
+         null
     }
 
     def beforeValidate() {
