@@ -34,6 +34,7 @@ import grails.core.GrailsApplication
 import grails.gorm.transactions.Transactional
 import grails.testing.mixin.integration.Integration
 import grails.testing.spock.OnceBefore
+import grails.testing.spock.RunOnce
 import groovy.util.logging.Slf4j
 import io.micronaut.core.type.Argument
 import io.micronaut.http.HttpResponse
@@ -82,9 +83,7 @@ class OpenidConnectAuthenticationFunctionalSpec extends BaseFunctionalSpec {
     @Shared
     String urlEncodedNonce
 
-    @OnceBefore
-    @Transactional
-    def checkAndSetupData() {
+    def setupSpec() {
         sessionId = 'cdb2fd10-1021-4758-abb9-c1e9e4eb0c19'
         //nonce = SecurityUtils.getHash(sessionId)
         nonce = [124, 70, 127, -33, 91, 53, -18, 47, -92, -30, -52, -5, 34, -64, -61, -97, 82, -97, 19, -99, -42, -39, -84, -43, 0, -32, -70, -70, 123, -1, 114, 106]
