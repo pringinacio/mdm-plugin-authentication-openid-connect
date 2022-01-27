@@ -52,6 +52,7 @@ class OpenidConnectProvider implements MdmDomain {
         clientId blank: false
         clientSecret blank: false
         imageUrl url: true, blank: false, nullable: true
+        path nullable: true
     }
 
     static mapping = {

@@ -71,6 +71,7 @@ class AuthorizationEndpointParameters implements MdmDomain {
         display nullable: true
         prompt nullable: true
         maxAge min: 0L, nullable: true
+        path nullable: true
     }
 
     static belongsTo = [openidConnectProvider: OpenidConnectProvider]

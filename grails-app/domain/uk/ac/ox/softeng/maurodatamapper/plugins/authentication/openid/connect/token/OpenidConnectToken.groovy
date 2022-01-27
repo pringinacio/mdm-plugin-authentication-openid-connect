@@ -53,6 +53,7 @@ class OpenidConnectToken implements MdmDomain {
         refreshExpiresIn nullable: true, min: 0L
         sessionState nullable: true
         notBeforePolicy nullable: true
+        path nullable: true
     }
 
     static mapping = {

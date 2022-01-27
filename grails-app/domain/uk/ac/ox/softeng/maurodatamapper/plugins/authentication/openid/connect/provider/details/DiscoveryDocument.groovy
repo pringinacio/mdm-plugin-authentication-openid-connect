@@ -41,6 +41,7 @@ class DiscoveryDocument implements MdmDomain{
         userinfoEndpoint blank: false, url: true, nullable: true
         endSessionEndpoint blank: false, url: true, nullable: true
         jwksUri blank: false, url: true
+        path nullable: true
     }
 
     @Override
