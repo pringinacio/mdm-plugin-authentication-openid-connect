@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
+ * Copyright 2020-2022 University of Oxford and Health and Social Care Information Centre, also known as NHS Digital
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.parameters
 
 import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.CallableConstraints
-import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.CreatorAwareConstraints
+import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.MdmDomainConstraints
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.parameters.Display
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.parameters.Prompt
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.security.Utils
-import uk.ac.ox.softeng.maurodatamapper.traits.domain.CreatorAware
+import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
 import groovy.util.logging.Slf4j
 
@@ -32,7 +32,7 @@ import groovy.util.logging.Slf4j
  * See <a href=https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint>OpenId Connect Specification</a>
  */
 @Slf4j
-class AuthorizationEndpointParameters implements CreatorAware {
+class AuthorizationEndpointParameters implements MdmDomain {
 
     UUID id
     // Space separated list
@@ -59,7 +59,7 @@ class AuthorizationEndpointParameters implements CreatorAware {
     //    String clientId
 
     static constraints = {
-        CallableConstraints.call(CreatorAwareConstraints, delegate)
+        CallableConstraints.call(MdmDomainConstraints, delegate)
         scope blank: false
         responseType blank: false
         responseMode blank: false, nullable: true
@@ -71,6 +71,7 @@ class AuthorizationEndpointParameters implements CreatorAware {
         display nullable: true
         prompt nullable: true
         maxAge min: 0L, nullable: true
+        path nullable: true
     }
 
     static belongsTo = [openidConnectProvider: OpenidConnectProvider]
@@ -83,6 +84,16 @@ class AuthorizationEndpointParameters implements CreatorAware {
     @Override
     String getDomainType() {
         AuthorizationEndpointParameters.simpleName
+    }
+
+    @Override
+    String getPathPrefix() {
+        return null
+    }
+
+    @Override
+    String getPathIdentifier() {
+        return null
     }
 
     String getClientId() {

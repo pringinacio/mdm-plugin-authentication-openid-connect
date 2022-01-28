@@ -1,5 +1,5 @@
 dependencies {
-    compile "io.micronaut:micronaut-http-client"
+    implementation "io.micronaut:micronaut-http-client"
     runtimeOnly "io.methvin:directory-watcher", {
         exclude group: 'com.google.guava', module: 'guava'
     }
@@ -9,13 +9,13 @@ dependencies {
 
     testImplementation "org.jsoup:jsoup:$jsoupVersion"
 
-    compile group: 'com.auth0', name: 'java-jwt', version: '3.16.0'
-    compile group: 'com.auth0', name: 'jwks-rsa', version: '0.18.0'
+    implementation group: 'com.auth0', name: 'java-jwt', version: '3.16.0'
+    implementation group: 'com.auth0', name: 'jwks-rsa', version: '0.18.0'
 //    implementation group: 'com.auth0', name: 'auth0', version: '1.31.0'
 
     // Postgres database
-    runtime group: 'org.flywaydb', name: 'flyway-core'
-    runtime "org.hibernate:hibernate-jcache"
-    runtime group: 'org.ehcache', name: 'ehcache'
-    runtime group: 'org.postgresql', name: 'postgresql'
+    runtimeOnly group: 'org.flywaydb', name: 'flyway-core'
+    runtimeOnly "org.hibernate:hibernate-jcache"
+    runtimeOnly group: 'org.ehcache', name: 'ehcache'
+    runtimeOnly group: 'org.postgresql', name: 'postgresql'
 }
