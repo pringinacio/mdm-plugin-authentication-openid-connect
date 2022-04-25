@@ -27,14 +27,11 @@ import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.pr
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectToken
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUserService
-import uk.ac.ox.softeng.maurodatamapper.security.utils.SecurityUtils
 import uk.ac.ox.softeng.maurodatamapper.test.functional.BaseFunctionalSpec
 
 import grails.core.GrailsApplication
 import grails.gorm.transactions.Transactional
 import grails.testing.mixin.integration.Integration
-import grails.testing.spock.OnceBefore
-import grails.testing.spock.RunOnce
 import groovy.util.logging.Slf4j
 import io.micronaut.core.type.Argument
 import io.micronaut.http.HttpResponse
@@ -45,7 +42,6 @@ import org.jsoup.nodes.FormElement
 import spock.lang.Ignore
 import spock.lang.Shared
 
-import java.nio.charset.Charset
 import java.time.Duration
 import javax.servlet.ServletContext
 import javax.servlet.http.HttpSession

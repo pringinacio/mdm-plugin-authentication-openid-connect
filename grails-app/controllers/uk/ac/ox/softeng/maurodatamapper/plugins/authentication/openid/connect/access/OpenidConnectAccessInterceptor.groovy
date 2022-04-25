@@ -18,7 +18,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access
 
 import uk.ac.ox.softeng.maurodatamapper.core.session.SessionService
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access.OpenidConnectAccessService
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectToken
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectTokenService
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManagerInterceptor
@@ -27,9 +26,9 @@ import uk.ac.ox.softeng.maurodatamapper.security.interceptor.SecurityPolicyManag
 
 import groovy.util.logging.Slf4j
 
-import javax.servlet.http.HttpSession
-
-import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access.OpenidConnectAccessService.*
+import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access.OpenidConnectAccessService.getACCESS_EXPIRY_SESSION_ATTRIBUTE_NAME
+import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access.OpenidConnectAccessService.getOPEN_ID_AUTHENTICATION_SESSION_ATTRIBUTE_NAME
+import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access.OpenidConnectAccessService.getREFRESH_EXPIRY_SESSION_ATTRIBUTE_NAME
 
 @Slf4j
 class OpenidConnectAccessInterceptor implements SecurityPolicyManagerInterceptor {
