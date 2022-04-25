@@ -26,9 +26,9 @@ import uk.ac.ox.softeng.maurodatamapper.security.interceptor.SecurityPolicyManag
 
 import groovy.util.logging.Slf4j
 
-import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access.OpenidConnectAccessService.getACCESS_EXPIRY_SESSION_ATTRIBUTE_NAME
-import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access.OpenidConnectAccessService.getOPEN_ID_AUTHENTICATION_SESSION_ATTRIBUTE_NAME
-import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access.OpenidConnectAccessService.getREFRESH_EXPIRY_SESSION_ATTRIBUTE_NAME
+import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access.OpenidConnectAccessService.ACCESS_EXPIRY_SESSION_ATTRIBUTE_NAME
+import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access.OpenidConnectAccessService.OPEN_ID_AUTHENTICATION_SESSION_ATTRIBUTE_NAME
+import static uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access.OpenidConnectAccessService.REFRESH_EXPIRY_SESSION_ATTRIBUTE_NAME
 
 @Slf4j
 class OpenidConnectAccessInterceptor implements SecurityPolicyManagerInterceptor {
