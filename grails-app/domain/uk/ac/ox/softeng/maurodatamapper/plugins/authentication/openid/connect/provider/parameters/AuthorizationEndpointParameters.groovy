@@ -19,14 +19,13 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.p
 
 import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.CallableConstraints
 import uk.ac.ox.softeng.maurodatamapper.gorm.constraint.callable.MdmDomainConstraints
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.parameters.Display
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.parameters.Prompt
+import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.security.Utils
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
 import groovy.util.logging.Slf4j
-
 
 /**
  * See <a href=https://openid.net/specs/openid-connect-core-1_0.html#AuthorizationEndpoint>OpenId Connect Specification</a>

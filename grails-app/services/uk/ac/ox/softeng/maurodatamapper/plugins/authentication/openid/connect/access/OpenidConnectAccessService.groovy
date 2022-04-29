@@ -17,16 +17,14 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.access
 
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProvider
+
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProviderService
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectToken
 import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.token.OpenidConnectTokenService
-import uk.ac.ox.softeng.maurodatamapper.security.authentication.AuthenticatingService
 
 import groovy.util.logging.Slf4j
 
 import java.time.Duration
-import javax.servlet.ServletContext
 import javax.servlet.http.HttpSession
 import javax.servlet.http.HttpSessionEvent
 import javax.servlet.http.HttpSessionListener

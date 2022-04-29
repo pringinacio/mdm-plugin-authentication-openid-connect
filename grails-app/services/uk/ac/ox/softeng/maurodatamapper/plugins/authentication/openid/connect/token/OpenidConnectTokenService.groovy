@@ -139,7 +139,7 @@ class OpenidConnectTokenService {
         delete(openidConnectToken)
     }
 
-    private boolean hasJwtTokenExpired(DecodedJWT token) {
+    boolean hasJwtTokenExpired(DecodedJWT token) {
         Date expiresAt = token.expiresAt
         Date now = new Date()
         now = new Date((now.getTime() / 1000).toLong() * 1000) // truncate millis

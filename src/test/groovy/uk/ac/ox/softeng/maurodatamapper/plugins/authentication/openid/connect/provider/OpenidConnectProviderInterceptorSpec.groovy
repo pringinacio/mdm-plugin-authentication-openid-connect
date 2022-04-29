@@ -17,7 +17,11 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider
 
-import uk.ac.ox.softeng.maurodatamapper.plugins.authentication.openid.connect.provider.OpenidConnectProviderInterceptor
+
+import uk.ac.ox.softeng.maurodatamapper.security.basic.NoAccessSecurityPolicyManager
+import uk.ac.ox.softeng.maurodatamapper.security.basic.PublicAccessSecurityPolicyManager
+import uk.ac.ox.softeng.maurodatamapper.test.unit.BaseUnitSpec
+import uk.ac.ox.softeng.maurodatamapper.test.unit.security.IdSecuredUserSecurityPolicyManager
 
 import grails.testing.web.interceptor.InterceptorUnitTest
 import grails.views.mvc.GenericGroovyTemplateViewResolver
@@ -26,11 +30,6 @@ import io.micronaut.http.HttpStatus
 import org.grails.web.servlet.view.CompositeViewResolver
 import org.grails.web.util.GrailsApplicationAttributes
 import spock.lang.Unroll
-import uk.ac.ox.softeng.maurodatamapper.security.basic.NoAccessSecurityPolicyManager
-import uk.ac.ox.softeng.maurodatamapper.security.basic.PublicAccessSecurityPolicyManager
-import uk.ac.ox.softeng.maurodatamapper.test.unit.BaseUnitSpec
-import uk.ac.ox.softeng.maurodatamapper.test.unit.security.IdSecuredUserSecurityPolicyManager
-
 
 @Slf4j
 class OpenidConnectProviderInterceptorSpec extends BaseUnitSpec implements InterceptorUnitTest<OpenidConnectProviderInterceptor> {
